@@ -9,20 +9,21 @@ class Medecin extends Model
 {
     use HasFactory;
 
-    // Autorise Laravel à remplir ces colonnes (Mass Assignment)
-    protected $fillable = [
-        'nom',
-        'prenom',
-        'telephone',
-        'specialite_id',
-    ];
+    protected $fillable = ['nom', 'prenom', 'email', 'telephone', 'specialite_id'];
 
     /**
-     * Relation : Un médecin appartient à une spécialité.
-     * Cela permet de faire : $medecin->specialite->nom
+     * RELATION : Le médecin appartient à une seule spécialité.
      */
     public function specialite()
     {
         return $this->belongsTo(Specialite::class);
+    }
+
+    /**
+     * RELATION : Le médecin possède plusieurs rendez-vous.
+     */
+    public function rendezvous()
+    {
+        return $this->hasMany(RendezVous::class);
     }
 }

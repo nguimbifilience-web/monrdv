@@ -1,37 +1,43 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-// Importation des contrôleurs
+
+// Importation des Contrôleurs
+use App\Http\Controllers\PatientController;
 use App\Http\Controllers\MedecinController;
 use App\Http\Controllers\RendezVousController;
+use App\Http\Controllers\SpecialiteController;
 
 /*
 |--------------------------------------------------------------------------
-| Web Routes - Projet MonRDV
+| Web Routes - Application MonRDV
 |--------------------------------------------------------------------------
 */
 
-// 1. Page d'accueil : Redirige vers la liste des médecins
+// Page d'accueil : Redirige directement vers le planning
 Route::get('/', function () {
-    return redirect('/medecins');
+    return redirect()->route('rendezvous.index');
 });
 
-// 2. --- ROUTES POUR LES MÉDECINS ---
+/**
+ * ROUTES RESSOURCES (Modèle Dashboard)
+ * Chaque ligne génère automatiquement les routes : index, store, show, edit, update, destroy
+ */
 
-// Affiche le tableau de bord avec les stats et la liste (http://localhost/medecins)
-Route::get('/medecins', [MedecinController::class, 'index'])->name('medecins.index');
+// Gestion des Patients (Liste + Ajout)
+Route::resource('patients', PatientController::class);
 
+// Gestion des Médecins (Celle qui manquait dans ta liste !)
+Route::resource('medecins', MedecinController::class);
 
-// 3. --- ROUTES POUR LES RENDEZ-VOUS ---
+// Gestion du Planning des Rendez-vous
+Route::resource('rendezvous', RendezVousController::class);
 
-// Affiche le formulaire pour prendre un RDV (http://localhost/rendez-vous/nouveau)
-Route::get('/rendez-vous/nouveau', [RendezVousController::class, 'create'])->name('rendezvous.create');
+// Gestion des Spécialités Médicales
+Route::resource('specialites', SpecialiteController::class);
 
-// Enregistre le RDV dans la base de données (Action du formulaire)
-Route::post('/rendez-vous', [RendezVousController::class, 'store'])->name('rendezvous.store');
-
-
-// 4. --- ROUTE DE TEST (À supprimer une fois le projet fini) ---
-Route::get('/test-rdv', function () {
-    return "<h1>Connexion établie ! Laravel fonctionne.</h1>";
-});
+/**
+ * ROUTES SUPPLÉMENTAIRES
+ */
+// Recherche rapide de patient (Optionnel pour ta Licence)
+Route::get('/recherche-patient', [PatientController::class, 'search'])->name('patients.search');

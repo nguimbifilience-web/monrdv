@@ -9,7 +9,7 @@ class RendezVous extends Model
 {
     use HasFactory;
 
-    // On définit le nom de la table car Laravel pourrait chercher "rendez_vouses" par défaut
+    // On définit le nom de la table
     protected $table = 'rendez_vous';
 
     protected $fillable = [
@@ -35,4 +35,4 @@ class RendezVous extends Model
     {
         return $this->belongsTo(Medecin::class);
     }
-}
+} // <--- Vérifie bien qu'il n'y a qu'UNE SEULE accolade ici à la fin

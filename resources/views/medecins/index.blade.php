@@ -1,81 +1,62 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MonRDV - Gestion des Médecins</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gray-50 p-6">
+@extends('layouts.app')
 
-    <div class="max-w-6xl mx-auto">
-        <h1 class="text-3xl font-bold text-gray-800 mb-8">Tableau de Bord Médical</h1>
+@section('content')
+<div style="display: flex; gap: 20px; align-items: flex-start; padding: 10px;">
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-blue-500">
-                <p class="text-gray-500 text-sm font-medium uppercase">Médecins</p>
-                <p class="text-2xl font-bold">{{ $stats['total_medecins'] }}</p>
+    <div style="flex: 1; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+        <h2 style="font-size: 18px; font-weight: bold; margin-bottom: 20px; color: #6366f1; border-bottom: 2px solid #6366f1; padding-bottom: 5px;">+ Nouveau Médecin</h2>
+        <form action="{{ route('medecins.store') }}" method="POST">
+            @csrf
+            <div style="margin-bottom: 10px;">
+                <label style="font-size: 12px; font-weight: bold;">Nom du Docteur</label>
+                <input type="text" name="nom" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;" placeholder="ex: NDONG" required>
             </div>
-            <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-green-500">
-                <p class="text-gray-500 text-sm font-medium uppercase">Patients</p>
-                <p class="text-2xl font-bold">{{ $stats['total_patients'] }}</p>
+            <div style="margin-bottom: 15px;">
+                <label style="font-size: 12px; font-weight: bold;">Spécialité</label>
+                <select name="specialite_id" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;" required>
+                    @foreach($specialites as $s)
+                        <option value="{{ $s->id }}">{{ $s->nom }}</option>
+                    @endforeach
+                </select>
             </div>
-            <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-purple-500">
-                <p class="text-gray-500 text-sm font-medium uppercase">Spécialités</p>
-                <p class="text-2xl font-bold">{{ $stats['total_specialites'] }}</p>
-            </div>
-        </div>
-
-        <div class="flex justify-between items-center mb-4">
-            <h2 class="text-xl font-semibold text-gray-700">Liste du personnel</h2>
-            <a href="{{ route('rendezvous.create') }}" class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-lg transition font-medium">
-                + Nouveau RDV
-            </a>
-        </div>
-
-        <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-200">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50">
-                    <tr>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                            <a href="{{ route('medecins.index', ['sort' => 'nom', 'direction' => ($sort == 'nom' && $direction == 'asc') ? 'desc' : 'asc']) }}" class="flex items-center hover:text-indigo-600">
-                                Nom
-                                @if($sort == 'nom')
-                                    <span class="ml-1">{{ $direction == 'asc' ? '↑' : '↓' }}</span>
-                                @endif
-                            </a>
-                        </th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                            <a href="{{ route('medecins.index', ['sort' => 'prenom', 'direction' => ($sort == 'prenom' && $direction == 'asc') ? 'desc' : 'asc']) }}" class="flex items-center hover:text-indigo-600">
-                                Prénom
-                                @if($sort == 'prenom')
-                                    <span class="ml-1">{{ $direction == 'asc' ? '↑' : '↓' }}</span>
-                                @endif
-                            </a>
-                        </th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Spécialité</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-200">
-                    @forelse($medecins as $medecin)
-                        <tr class="hover:bg-gray-50 transition">
-                            <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">{{ $medecin->nom }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-gray-600">{{ $medecin->prenom }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="px-2 py-1 text-xs font-semibold bg-blue-100 text-blue-800 rounded-full">
-                                    {{ $medecin->specialite->nom ?? 'Généraliste' }}
-                                </span>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="3" class="px-6 py-10 text-center text-gray-400">Aucun médecin dans la base.</td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
+            <button type="submit" style="width: 100%; background: #6366f1; color: white; padding: 10px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">Enregistrer</button>
+        </form>
     </div>
 
-</body>
-</html>
+    <div style="flex: 2; background: white; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); overflow: hidden;">
+        
+        <div style="padding: 15px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
+            <h2 style="font-size: 18px; font-weight: bold;">👨‍⚕️ Corps Médical</h2>
+            
+            <form action="{{ route('medecins.index') }}" method="GET" style="display: flex; gap: 5px;">
+                <select name="specialite" style="padding: 5px; border-radius: 4px; border: 1px solid #ccc; font-size: 13px;">
+                    <option value="">Toutes les spécialités</option>
+                    @foreach($specialites as $s)
+                        <option value="{{ $s->id }}" {{ request('specialite') == $s->id ? 'selected' : '' }}>{{ $s->nom }}</option>
+                    @endforeach
+                </select>
+                <button type="submit" style="background: #64748b; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">Trier</button>
+            </form>
+        </div>
+
+        <table style="width: 100%; text-align: left; border-collapse: collapse;">
+            <thead>
+                <tr style="background: #f1f5f9;">
+                    <th style="padding: 12px; border-bottom: 1px solid #ddd;">Nom</th>
+                    <th style="padding: 12px; border-bottom: 1px solid #ddd;">Spécialité</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($medecins as $m)
+                <tr style="border-bottom: 1px solid #eee;">
+                    <td style="padding: 12px; font-weight:bold;">Dr. {{ strtoupper($m->nom) }}</td>
+                    <td style="padding: 12px;"><span style="background: #e0e7ff; color: #4338ca; padding: 2px 8px; border-radius: 10px; font-size: 12px;">{{ $m->specialite->nom }}</span></td>
+                </tr>
+                @empty
+                <tr><td colspan="2" style="padding:20px; text-align:center;">Aucun médecin trouvé.</td></tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+</div>
+@endsection

@@ -2,28 +2,21 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Patient extends Model
 {
-    use HasFactory;
+    protected $fillable = ['nom', 'prenom', 'email', 'telephone', 'date_naissance'];
 
-    // Champs autorisés à être remplis
-    protected $fillable = [
-        'nom',
-        'prenom',
-        'email',
-        'telephone',
-        'assurance_id',
-        'numero_assurance',
-    ];
-
-    /**
-     * Relation : Un patient peut appartenir à une assurance
-     */
-    public function assurance()
+    // Accesseur pour afficher "NOM Prénom"
+    public function getNomCompletAttribute()
     {
-        return $this->belongsTo(Assurance::class);
+        return strtoupper($this->nom) . ' ' . ucfirst($this->prenom);
+    }
+
+    // Relation : Un patient a plusieurs rendez-vous
+    public function rendezvous()
+    {
+        return $this->hasMany(RendezVous::class);
     }
 }

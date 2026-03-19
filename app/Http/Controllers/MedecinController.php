@@ -2,36 +2,36 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\Medecin;
-use App\Models\Patient;
 use App\Models\Specialite;
+use Illuminate\Http\Request;
 
 class MedecinController extends Controller
 {
     public function index(Request $request)
     {
-        // 1. Définir les paramètres de tri par défaut
-        $sort = $request->get('sort', 'nom'); // Trie par 'nom' par défaut
-        $direction = $request->get('direction', 'asc'); // Ordre croissant par défaut
+        $query = Medecin::with('specialite');
 
-        // 2. Sécurité : On vérifie que la colonne existe pour éviter les injections SQL
-        $allowedSorts = ['nom', 'prenom', 'email'];
-        if (!in_array($sort, $allowedSorts)) {
-            $sort = 'nom';
+        // TRI PAR CATÉGORIE (Spécialité)
+        if ($request->filled('specialite_id')) {
+            $query->where('specialite_id', $request->specialite_id);
         }
 
-        // 3. Récupérer les médecins avec le tri
-        $medecins = Medecin::orderBy($sort, $direction)->get();
+        // TRI ALPHABÉTIQUE
+        $medecins = $query->orderBy('nom', 'asc')->get();
+        $specialites = Specialite::orderBy('nom', 'asc')->get();
 
-        // 4. Statistiques pour les compteurs en haut de page
-        $stats = [
-            'total_medecins' => Medecin::count(),
-            'total_patients' => Patient::count(),
-            'total_specialites' => Specialite::count(),
-        ];
+        return view('medecins.index', compact('medecins', 'specialites'));
+    }
 
-        // 5. Envoyer tout à la vue
-        return view('medecins.index', compact('medecins', 'stats', 'sort', 'direction'));
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'nom' => 'required|string|max:255',
+            'specialite_id' => 'required|exists:specialites,id',
+        ]);
+
+        Medecin::create($validated);
+        return redirect()->route('medecins.index')->with('success', 'Médecin ajouté !');
     }
 }

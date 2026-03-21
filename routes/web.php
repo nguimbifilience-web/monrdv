@@ -1,43 +1,30 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-
-// Importation des Contrôleurs
-use App\Http\Controllers\PatientController;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Request;
 use App\Http\Controllers\MedecinController;
-use App\Http\Controllers\RendezVousController;
-use App\Http\Controllers\SpecialiteController;
 
-/*
-|--------------------------------------------------------------------------
-| Web Routes - Application MonRDV
-|--------------------------------------------------------------------------
-*/
+// 1. La page de Login
+Route::get('/login', function () {
+    return view('auth.login');
+})->name('login');
 
-// Page d'accueil : Redirige directement vers le planning
-Route::get('/', function () {
-    return redirect()->route('rendezvous.index');
+// 2. Le traitement du formulaire de Login
+Route::post('/login', function (Request $request) {
+    $credentials = $request->only('email', 'password');
+
+    if (Auth::attempt($credentials)) {
+        $request->session()->regenerate();
+        return redirect()->intended('/medecins');
+    }
+
+    return back()->withErrors(['email' => 'Identifiants incorrects.']);
+})->name('login.post');
+
+// 3. Les pages protégées pour l'Admin
+Route::middleware(['auth'])->group(function () {
+    Route::get('/medecins', [MedecinController::class, 'index'])->name('medecins.index');
+    Route::get('/medecins/create', [MedecinController::class, 'create'])->name('medecins.create');
+    Route::post('/medecins', [MedecinController::class, 'store'])->name('medecins.store');
 });
-
-/**
- * ROUTES RESSOURCES (Modèle Dashboard)
- * Chaque ligne génère automatiquement les routes : index, store, show, edit, update, destroy
- */
-
-// Gestion des Patients (Liste + Ajout)
-Route::resource('patients', PatientController::class);
-
-// Gestion des Médecins (Celle qui manquait dans ta liste !)
-Route::resource('medecins', MedecinController::class);
-
-// Gestion du Planning des Rendez-vous
-Route::resource('rendezvous', RendezVousController::class);
-
-// Gestion des Spécialités Médicales
-Route::resource('specialites', SpecialiteController::class);
-
-/**
- * ROUTES SUPPLÉMENTAIRES
- */
-// Recherche rapide de patient (Optionnel pour ta Licence)
-Route::get('/recherche-patient', [PatientController::class, 'search'])->name('patients.search');

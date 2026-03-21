@@ -2,36 +2,46 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Http\Request;
 use App\Models\Medecin;
 use App\Models\Specialite;
-use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class MedecinController extends Controller
 {
-    public function index(Request $request)
+    public function __construct()
     {
-        $query = Medecin::with('specialite');
+        // Seuls les utilisateurs connectés ET administrateurs peuvent entrer
+        $this->middleware(function ($request, $next) {
+            if (!Auth::check() || !Auth::user()->is_admin) {
+                return redirect('/')->with('error', 'Accès réservé à l\'administrateur.');
+            }
+            return $next($request);
+        });
+    }
 
-        // TRI PAR CATÉGORIE (Spécialité)
-        if ($request->filled('specialite_id')) {
-            $query->where('specialite_id', $request->specialite_id);
-        }
+    public function index()
+    {
+        $medecins = Medecin::with('specialite')->orderBy('nom', 'asc')->get();
+        return view('medecins.index', compact('medecins'));
+    }
 
-        // TRI ALPHABÉTIQUE
-        $medecins = $query->orderBy('nom', 'asc')->get();
-        $specialites = Specialite::orderBy('nom', 'asc')->get();
-
-        return view('medecins.index', compact('medecins', 'specialites'));
+    public function create()
+    {
+        $specialites = Specialite::all();
+        return view('medecins.create', compact('specialites'));
     }
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'nom' => 'required|string|max:255',
+        $request->validate([
+            'nom' => 'required|string',
+            'prenom' => 'required|string',
             'specialite_id' => 'required|exists:specialites,id',
         ]);
 
-        Medecin::create($validated);
-        return redirect()->route('medecins.index')->with('success', 'Médecin ajouté !');
+        Medecin::create($request->all());
+
+        return redirect()->route('medecins.index')->with('success', 'Médecin ajouté avec succès.');
     }
 }

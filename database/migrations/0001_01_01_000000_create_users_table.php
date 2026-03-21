@@ -11,22 +11,30 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Création de la table des utilisateurs
         Schema::create('users', function (Blueprint $table) {
             $table->id();
             $table->string('name');
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+            
+            // --- AJOUT DE LA COLONNE ADMINISTRATEUR ---
+            $table->boolean('is_admin')->default(false); 
+            // -------------------------------------------
+
             $table->rememberToken();
             $table->timestamps();
         });
 
+        // Table pour la réinitialisation des mots de passe
         Schema::create('password_reset_tokens', function (Blueprint $table) {
             $table->string('email')->primary();
             $table->string('token');
             $table->timestamp('created_at')->nullable();
         });
 
+        // Table pour la gestion des sessions (obligatoire pour Auth)
         Schema::create('sessions', function (Blueprint $table) {
             $table->string('id')->primary();
             $table->foreignId('user_id')->nullable()->index();

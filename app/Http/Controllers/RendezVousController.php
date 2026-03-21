@@ -17,16 +17,18 @@ class RendezVousController extends Controller
         $dateFiltre = $request->get('date', Carbon::today()->format('Y-m-d'));
         $direction = $request->get('direction', 'asc');
 
-        // 2. LISTE A : Le Planning du jour (Filtrable par date/médecin)
+        // 2. LISTE A : Le Planning du jour (Celle qui causait l'erreur $rdvs)
         $queryPlanning = RendezVous::with(['medecin', 'patient'])
             ->whereDate('date_rdv', $dateFiltre);
 
         if ($medecinId) {
             $queryPlanning->where('medecin_id', $medecinId);
         }
-        $rendezvous = $queryPlanning->orderBy('date_rdv', $direction)->get();
+        
+        // On nomme la variable $rdvs pour correspondre à ta vue Blade
+        $rdvs = $queryPlanning->orderBy('date_rdv', $direction)->get();
 
-        // 3. LISTE B : Flux d'activité (Les 20 derniers enregistrements réels)
+        // 3. LISTE B : Flux d'activité (Les 20 derniers enregistrements)
         $derniersRdv = RendezVous::with(['medecin', 'patient'])
             ->orderBy('created_at', 'desc')
             ->take(20)
@@ -34,12 +36,14 @@ class RendezVousController extends Controller
 
         // 4. Données pour la vue
         $medecins = Medecin::all();
-        $totalRdvJour = $rendezvous->count();
+        $patients = Patient::orderBy('nom', 'asc')->get(); 
+        $totalRdvJour = $rdvs->count();
 
         return view('rendezvous.index', compact(
-            'rendezvous', 
+            'rdvs',             // Variable corrigée ici
             'derniersRdv', 
             'medecins', 
+            'patients', 
             'medecinId', 
             'dateFiltre', 
             'direction', 
@@ -64,7 +68,6 @@ class RendezVousController extends Controller
 
         RendezVous::create($request->all());
 
-        // Redirection vers l'index pour voir le nouveau RDV apparaître dans le flux
         return redirect()->route('rendezvous.index')->with('success', 'Rendez-vous enregistré avec succès !');
     }
 }

@@ -9,21 +9,10 @@ class Medecin extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['nom', 'prenom', 'email', 'telephone', 'specialite_id'];
+    protected $fillable = ['nom', 'prenom', 'specialite_id', 'email'];
 
-    /**
-     * RELATION : Le médecin appartient à une seule spécialité.
-     */
     public function specialite()
     {
         return $this->belongsTo(Specialite::class);
-    }
-
-    /**
-     * RELATION : Le médecin possède plusieurs rendez-vous.
-     */
-    public function rendezvous()
-    {
-        return $this->hasMany(RendezVous::class);
     }
 }

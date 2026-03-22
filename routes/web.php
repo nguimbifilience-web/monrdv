@@ -4,7 +4,8 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use App\Http\Controllers\MedecinController;
-use App\Http\Controllers\RendezVousController; // <-- TRÈS IMPORTANT : Ajoute cette ligne !
+use App\Http\Controllers\RendezVousController;
+use App\Http\Controllers\PatientController; // <-- AJOUTÉ : Import du contrôleur Patient
 
 // 1. Redirection de l'accueil vers le Dashboard
 Route::get('/', function () {
@@ -22,14 +23,13 @@ Route::post('/login', function (Request $request) {
 
     if (Auth::attempt($credentials)) {
         $request->session()->regenerate();
-        // Redirige vers le dashboard après connexion
         return redirect()->intended('/rendezvous'); 
     }
 
     return back()->withErrors(['email' => 'Identifiants incorrects.']);
 })->name('login.post');
 
-// 4. Déconnexion (Optionnel mais utile)
+// 4. Déconnexion
 Route::post('/logout', function (Request $request) {
     Auth::logout();
     $request->session()->invalidate();
@@ -45,9 +45,13 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/medecins/create', [MedecinController::class, 'create'])->name('medecins.create');
     Route::post('/medecins', [MedecinController::class, 'store'])->name('medecins.store');
 
-    // --- ROUTES RENDEZ-VOUS (Dashboard) ---
-    // C'est ce qui manquait et causait la 404 !
+    // --- ROUTES RENDEZ-VOUS ---
     Route::get('/rendezvous', [RendezVousController::class, 'index'])->name('rendezvous.index');
     Route::get('/rendezvous/create', [RendezVousController::class, 'create'])->name('rendezvous.create');
     Route::post('/rendezvous', [RendezVousController::class, 'store'])->name('rendezvous.store');
+
+    // --- ROUTES PATIENTS (CORRECTION DE TON ERREUR) ---
+    Route::get('/patients', [PatientController::class, 'index'])->name('patients.index');
+    Route::get('/patients/create', [PatientController::class, 'create'])->name('patients.create');
+    Route::post('/patients', [PatientController::class, 'store'])->name('patients.store');
 });

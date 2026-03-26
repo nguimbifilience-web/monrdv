@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(php:*)",
+      "Bash(/tmp/check_structure.txt:*)",
+      "Read(//tmp/**)",
+      "Bash(ls:*)",
+      "Bash(where php:*)",
+      "Read(//c/xampp/php/**)",
+      "Read(//c/laragon/**)",
+      "Read(//c/wamp64/**)"
+    ]
+  }
+}

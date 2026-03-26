@@ -9,30 +9,25 @@ class RendezVous extends Model
 {
     use HasFactory;
 
-    // On définit le nom de la table
     protected $table = 'rendez_vous';
 
+    // On utilise exactement les noms de ton DESCRIBE MySQL
     protected $fillable = [
-        'date_rdv',
-        'motif',
-        'statut',
-        'patient_id',
-        'medecin_id',
+        'date_rv', 
+        'heure_rv', 
+        'motif', 
+        'statut', 
+        'patient_id', 
+        'medecin_id'
     ];
 
-    /**
-     * Relation : Un rendez-vous appartient à un patient
-     */
     public function patient()
     {
         return $this->belongsTo(Patient::class);
     }
 
-    /**
-     * Relation : Un rendez-vous appartient à un médecin
-     */
     public function medecin()
     {
         return $this->belongsTo(Medecin::class);
     }
-} // <--- Vérifie bien qu'il n'y a qu'UNE SEULE accolade ici à la fin
+}

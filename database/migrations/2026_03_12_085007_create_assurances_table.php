@@ -9,21 +9,23 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up(): void
+    public function up()
     {
-        Schema::create('assurances', function (Blueprint $table) {
-            $table->id();
-            $table->string('nom'); // Nom de la compagnie (ex: CNAMGS)
-            $table->integer('taux_prise_en_charge')->default(0); // Pourcentage
-            $table->boolean('est_partenaire')->default(true); // Statut actif/inactif
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('assurances')) {
+            Schema::create('assurances', function (Blueprint $table) {
+                $table->id();
+                $table->string('nom'); // Nom de l'assurance
+                $table->string('code')->nullable(); // Code interne (optionnel)
+                $table->text('description')->nullable(); // Description
+                $table->timestamps();
+            });
+        }
     }
 
     /**
      * Reverse the migrations.
      */
-    public function down(): void
+    public function down()
     {
         Schema::dropIfExists('assurances');
     }

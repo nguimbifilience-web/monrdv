@@ -7,30 +7,33 @@ use Illuminate\Http\Request;
 
 class SpecialiteController extends Controller
 {
-    // Afficher la liste des spécialités
-    public function index()
-    {
-        $specialites = Specialite::withCount('medecins')->get();
-        return view('specialites.index', compact('specialites'));
+    public function index(Request $request) {
+        $search = $request->get('search');
+        $query = Specialite::query();
+
+        if ($search) { $query->where('nom', 'like', "%{$search}%"); }
+
+        $specialites = $query->orderBy('nom', 'asc')->get();
+        $total = $specialites->count();
+
+        return view('specialites.index', compact('specialites', 'total'));
     }
 
-    // Formulaire de création
-    public function create()
-    {
-        return view('specialites.create');
+    public function store(Request $request) {
+        $data = $request->validate(['nom' => 'required|unique:specialites']);
+        Specialite::create($data);
+        return back()->with('success', 'Créé.');
     }
 
-    // Enregistrement dans la base
-    public function store(Request $request)
-    {
-        $request->validate([
-            'nom' => 'required|unique:specialites|max:255',
-            'description' => 'nullable',
-        ]);
+    public function update(Request $request, $id) {
+        $spec = Specialite::findOrFail($id);
+        $data = $request->validate(['nom' => 'required|unique:specialites,nom,'.$id]);
+        $spec->update($data);
+        return back()->with('success', 'Modifié.');
+    }
 
-        Specialite::create($request->all());
-
-        return redirect()->route('specialites.index')
-            ->with('success', 'Spécialité ajoutée avec succès !');
+    public function destroy($id) {
+        Specialite::destroy($id);
+        return back()->with('error', 'Supprimé.');
     }
 }

@@ -2,72 +2,92 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\RendezVous;
-use App\Models\Medecin;
 use App\Models\Patient;
-use Carbon\Carbon;
+use App\Models\Medecin;
+use Illuminate\Http\Request;
 
 class RendezVousController extends Controller
 {
     public function index(Request $request)
     {
-        // 1. Paramètres des filtres
-        $medecinId = $request->get('medecin_id');
-        $dateFiltre = $request->get('date', Carbon::today()->format('Y-m-d'));
-        $direction = $request->get('direction', 'asc');
+        $query = RendezVous::with(['patient', 'medecin']);
 
-        // 2. LISTE A : Le Planning du jour (Celle qui causait l'erreur $rdvs)
-        $queryPlanning = RendezVous::with(['medecin', 'patient'])
-            ->whereDate('date_rdv', $dateFiltre);
-
-        if ($medecinId) {
-            $queryPlanning->where('medecin_id', $medecinId);
+        if ($request->filled('search')) {
+            $query->whereHas('patient', function ($q) use ($request) {
+                $q->where('nom', 'like', '%' . $request->search . '%');
+            });
         }
-        
-        // On nomme la variable $rdvs pour correspondre à ta vue Blade
-        $rdvs = $queryPlanning->orderBy('date_rdv', $direction)->get();
 
-        // 3. LISTE B : Flux d'activité (Les 20 derniers enregistrements)
-        $derniersRdv = RendezVous::with(['medecin', 'patient'])
-            ->orderBy('created_at', 'desc')
-            ->take(20)
-            ->get();
+        if ($request->filled('date')) {
+            $query->whereDate('date_rv', $request->date);
+        }
 
-        // 4. Données pour la vue
+        if ($request->filled('medecin_id')) {
+            $query->where('medecin_id', $request->medecin_id);
+        }
+
+        $rendezvous = $query->orderBy('date_rv', 'desc')->orderBy('heure_rv', 'asc')->get();
         $medecins = Medecin::all();
-        $patients = Patient::orderBy('nom', 'asc')->get(); 
-        $totalRdvJour = $rdvs->count();
 
-        return view('rendezvous.index', compact(
-            'rdvs',             // Variable corrigée ici
-            'derniersRdv', 
-            'medecins', 
-            'patients', 
-            'medecinId', 
-            'dateFiltre', 
-            'direction', 
-            'totalRdvJour'
-        ));
+        return view('rendezvous.index', compact('rendezvous', 'medecins'));
     }
 
     public function create()
     {
-        $medecins = Medecin::with('specialite')->get();
-        $patients = Patient::orderBy('nom', 'asc')->get();
-        return view('rendezvous.create', compact('medecins', 'patients'));
+        $patients = Patient::all();
+        $medecins = Medecin::all();
+        return view('rendezvous.create', compact('patients', 'medecins'));
     }
 
     public function store(Request $request)
     {
-        $request->validate([
-            'medecin_id' => 'required|exists:medecins,id',
+        $validated = $request->validate([
+            'date_rv'    => 'required|date',
+            'heure_rv'   => 'required',
             'patient_id' => 'required|exists:patients,id',
-            'date_rdv'   => 'required|date',
+            'medecin_id' => 'required|exists:medecins,id',
+            'motif'      => 'nullable|string|max:255',
         ]);
 
-        RendezVous::create($request->all());
+        RendezVous::create($validated);
 
-        return redirect()->route('rendezvous.index')->with('success', 'Rendez-vous enregistré avec succès !');
+        return redirect()->route('rendezvous.index')
+                         ->with('success', 'Le rendez-vous a été enregistré !');
+    }
+
+    public function edit($id)
+    {
+        $rendezvous = RendezVous::findOrFail($id);
+        $patients = Patient::all();
+        $medecins = Medecin::all();
+
+        return view('rendezvous.edit', compact('rendezvous', 'patients', 'medecins'));
+    }
+
+    public function update(Request $request, $id)
+    {
+        $validated = $request->validate([
+            'date_rv'    => 'required|date',
+            'heure_rv'   => 'required',
+            'patient_id' => 'required|exists:patients,id',
+            'medecin_id' => 'required|exists:medecins,id',
+            'motif'      => 'nullable|string|max:255',
+        ]);
+
+        $rendezvous = RendezVous::findOrFail($id);
+        $rendezvous->update($validated);
+
+        return redirect()->route('rendezvous.index')
+                         ->with('success', 'Rendez-vous mis à jour avec succès !');
+    }
+
+    public function destroy($id)
+    {
+        $rendezvous = RendezVous::findOrFail($id);
+        $rendezvous->delete();
+
+        return redirect()->route('rendezvous.index')
+                         ->with('success', 'Rendez-vous supprimé.');
     }
 }

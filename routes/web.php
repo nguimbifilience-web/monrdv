@@ -1,57 +1,49 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Http\Request;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\MedecinController;
+use App\Http\Controllers\PatientController;
 use App\Http\Controllers\RendezVousController;
-use App\Http\Controllers\PatientController; // <-- AJOUTÉ : Import du contrôleur Patient
+use App\Http\Controllers\SpecialiteController;
+use App\Http\Controllers\AssuranceController;
+use Illuminate\Support\Facades\Route;
 
-// 1. Redirection de l'accueil vers le Dashboard
 Route::get('/', function () {
-    return redirect()->route('rendezvous.index');
+    return view('welcome');
 });
 
-// 2. La page de Login
-Route::get('/login', function () {
-    return view('auth.login');
-})->name('login');
+Route::get('/dashboard', [DashboardController::class, 'index'])
+    ->middleware(['auth', 'verified'])
+    ->name('dashboard');
 
-// 3. Le traitement du formulaire de Login
-Route::post('/login', function (Request $request) {
-    $credentials = $request->only('email', 'password');
-
-    if (Auth::attempt($credentials)) {
-        $request->session()->regenerate();
-        return redirect()->intended('/rendezvous'); 
-    }
-
-    return back()->withErrors(['email' => 'Identifiants incorrects.']);
-})->name('login.post');
-
-// 4. Déconnexion
-Route::post('/logout', function (Request $request) {
-    Auth::logout();
-    $request->session()->invalidate();
-    $request->session()->regenerateToken();
-    return redirect('/login');
-})->name('logout');
-
-// 5. TOUTES les pages protégées (Admin)
-Route::middleware(['auth'])->group(function () {
+Route::middleware('auth')->group(function () {
     
-    // --- ROUTES MÉDECINS ---
-    Route::get('/medecins', [MedecinController::class, 'index'])->name('medecins.index');
-    Route::get('/medecins/create', [MedecinController::class, 'create'])->name('medecins.create');
-    Route::post('/medecins', [MedecinController::class, 'store'])->name('medecins.store');
+    // Profil utilisateur
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    // --- ROUTES RENDEZ-VOUS ---
-    Route::get('/rendezvous', [RendezVousController::class, 'index'])->name('rendezvous.index');
-    Route::get('/rendezvous/create', [RendezVousController::class, 'create'])->name('rendezvous.create');
-    Route::post('/rendezvous', [RendezVousController::class, 'store'])->name('rendezvous.store');
+    // Gestion des Médecins
+    Route::resource('medecins', MedecinController::class);
+    
+    // Route pour la disponibilité (AJAX)
+    Route::post('/dispo/toggle', [MedecinController::class, 'toggleDispo'])->name('dispo.toggle');
 
-    // --- ROUTES PATIENTS (CORRECTION DE TON ERREUR) ---
-    Route::get('/patients', [PatientController::class, 'index'])->name('patients.index');
-    Route::get('/patients/create', [PatientController::class, 'create'])->name('patients.create');
-    Route::post('/patients', [PatientController::class, 'store'])->name('patients.store');
+    // On garde quand même cette route si tu veux y accéder via un menu
+    Route::get('/planning-global', [MedecinController::class, 'schedule'])->name('medecins.schedule');
+
+    // Gestion des Patients
+    Route::resource('patients', PatientController::class);
+
+    // Gestion des Rendez-vous
+    Route::resource('rendezvous', RendezVousController::class);
+
+    // Gestion des Spécialités
+    Route::resource('specialites', SpecialiteController::class)->except(['create', 'show', 'edit']);
+
+    // Gestion des Assurances
+    Route::resource('assurances', AssuranceController::class)->except(['create', 'show', 'edit']);
 });
+
+require __DIR__.'/auth.php';

@@ -6,28 +6,22 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
-        Schema::create('rendez_vous', function (Blueprint $table) {
-            $table->id();
-            $table->dateTime('date_rdv'); // Date et Heure du rendez-vous
-            $table->string('motif')->nullable(); // Pourquoi le patient vient-il ?
-            $table->enum('statut', ['en_attente', 'confirme', 'annule'])->default('en_attente');
-            
-            // LES CLÉS ÉTRANGÈRES : Le cœur du système
-            $table->foreignId('patient_id')->constrained()->onDelete('cascade');
-            $table->foreignId('medecin_id')->constrained()->onDelete('cascade');
-            
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('rendez_vous')) {
+            Schema::create('rendez_vous', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('patient_id')->constrained()->onDelete('cascade');
+                $table->foreignId('medecin_id')->constrained()->onDelete('cascade');
+                $table->date('date_rv');
+                $table->time('heure_rv');
+                $table->string('statut')->default('en_attente');
+                $table->text('motif')->nullable();
+                $table->timestamps();
+            });
+        }
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('rendez_vous');

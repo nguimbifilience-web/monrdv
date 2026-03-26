@@ -2,17 +2,20 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Assurance extends Model
 {
-    use HasFactory;
-
-    // On autorise Laravel à remplir ces champs automatiquement
     protected $fillable = [
-        'nom',
-        'taux_prise_en_charge',
-        'est_partenaire',
+        'nom',              // Nom de l'assurance
+        'nom_referent',     // Nom du contact principal
+        'telephone',        // Contact téléphonique
+        'email',            // Contact mail
+        'taux_couverture'   // Pourcentage (ex: 80)
     ];
+
+    public function patients()
+    {
+        return $this->hasMany(Patient::class);
+    }
 }

@@ -8,18 +8,27 @@ use Illuminate\Support\Facades\Hash;
 
 class AdminSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
+        // Compte Administrateur
         User::updateOrCreate(
-            ['email' => 'admin@monrdv.ga'], // Condition pour vérifier si l'admin existe déjà
+            ['email' => 'admin@monrdv.ga'],
             [
                 'name' => 'Administrateur',
-                'password' => Hash::make('password'), // Change "password" par ton mot de passe réel
+                'password' => Hash::make('password'),
                 'is_admin' => true,
-                'email_verified_at' => now(), // Optionnel : pour éviter de demander la vérification d'email
+                'email_verified_at' => now(),
+            ]
+        );
+
+        // Compte Utilisateur simple
+        User::updateOrCreate(
+            ['email' => 'user@monrdv.ga'],
+            [
+                'name' => 'Utilisateur',
+                'password' => Hash::make('password'),
+                'is_admin' => false,
+                'email_verified_at' => now(),
             ]
         );
     }

@@ -30,4 +30,9 @@ class RendezVous extends Model
     {
         return $this->belongsTo(Medecin::class);
     }
+
+    public function consultation()
+    {
+        return $this->hasOne(Consultation::class, 'rendez_vous_id');
+    }
 }

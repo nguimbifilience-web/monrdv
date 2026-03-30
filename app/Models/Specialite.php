@@ -9,7 +9,7 @@ class Specialite extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['nom', 'description'];
+    protected $fillable = ['nom', 'description', 'icone', 'tarif_consultation'];
 
     /**
      * RELATION : Une spécialité possède plusieurs médecins.

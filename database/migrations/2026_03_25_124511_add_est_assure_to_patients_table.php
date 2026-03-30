@@ -8,20 +8,16 @@ return new class extends Migration
 {
     public function up(): void
     {
-        // On vérifie si la colonne existe AVANT de tenter de l'ajouter
-        if (!Schema::hasColumn('assurances', 'description')) {
-            Schema::table('assurances', function (Blueprint $table) {
-                $table->text('description')->nullable()->after('nom');
-            });
-        }
+        Schema::table('patients', function (Blueprint $table) {
+            // On ajoute la case à cocher "assuré" (true/false)
+            $table->boolean('est_assure')->default(false)->after('telephone');
+        });
     }
 
     public function down(): void
     {
-        if (Schema::hasColumn('assurances', 'description')) {
-            Schema::table('assurances', function (Blueprint $table) {
-                $table->dropColumn('description');
-            });
-        }
+        Schema::table('patients', function (Blueprint $table) {
+            $table->dropColumn('est_assure');
+        });
     }
 };

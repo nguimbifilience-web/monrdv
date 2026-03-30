@@ -4,15 +4,32 @@ namespace App\Http\Controllers;
 
 use App\Models\Medecin;
 use App\Models\Specialite;
+use App\Models\ActivityLog;
 use Illuminate\Http\Request;
 
 class MedecinController extends Controller
 {
-    // Affiche la liste simple (CRUD)
-    public function index() 
+    public function index(Request $request)
     {
-        $medecins = Medecin::with('specialite')->orderBy('id', 'desc')->get();
-        return view('medecins.index', compact('medecins'));
+        $query = Medecin::with('specialite');
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('nom', 'like', "%{$search}%")
+                  ->orWhere('prenom', 'like', "%{$search}%")
+                  ->orWhere('telephone', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->filled('specialite_id')) {
+            $query->where('specialite_id', $request->specialite_id);
+        }
+
+        $medecins = $query->orderBy('id', 'desc')->get();
+        $specialites = Specialite::orderBy('nom')->get();
+
+        return view('medecins.index', compact('medecins', 'specialites'));
     }
 
     public function create() 
@@ -29,10 +46,12 @@ class MedecinController extends Controller
             'prenom'        => 'required',
             'specialite_id' => 'required',
             'telephone'     => 'nullable',
+            'tarif_heure'   => 'required|numeric|min:0',
+            'heures_mois'   => 'required|integer|min:0',
         ]);
 
-        // On crée le médecin avec les données validées
-        Medecin::create($validated);
+        $medecin = Medecin::create($validated);
+        ActivityLog::log('creation', "Médecin créé : Dr. {$medecin->nom} {$medecin->prenom}", $medecin);
 
         return redirect()->route('medecins.index')->with('success', 'Médecin ajouté !');
     }
@@ -68,9 +87,13 @@ class MedecinController extends Controller
             'prenom'        => 'required',
             'specialite_id' => 'required|exists:specialites,id',
             'telephone'     => 'nullable',
+            'tarif_heure'   => 'required|numeric|min:0',
+            'heures_mois'   => 'required|integer|min:0',
         ]);
 
+        $oldValues = $medecin->toArray();
         $medecin->update($validated);
+        ActivityLog::log('modification', "Médecin modifié : Dr. {$medecin->nom}", $medecin, $oldValues, $validated);
 
         return redirect()->route('medecins.index')->with('success', 'Médecin mis à jour avec succès !');
     }
@@ -79,9 +102,49 @@ class MedecinController extends Controller
     public function destroy($id)
     {
         $medecin = Medecin::findOrFail($id);
+        ActivityLog::log('suppression', "Médecin supprimé : Dr. {$medecin->nom} {$medecin->prenom}", $medecin);
         $medecin->delete();
 
         return redirect()->route('medecins.index')->with('success', 'Le praticien a été retiré de la liste.');
+    }
+
+    /**
+     * Recherche AJAX médecins
+     */
+    public function ajaxSearch(Request $request)
+    {
+        $query = Medecin::with('specialite');
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('nom', 'like', "%{$search}%")
+                  ->orWhere('prenom', 'like', "%{$search}%")
+                  ->orWhere('telephone', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->filled('specialite_id')) {
+            $query->where('specialite_id', $request->specialite_id);
+        }
+
+        $medecins = $query->orderBy('id', 'desc')->get();
+
+        return response()->json($medecins->map(function ($m) {
+            return [
+                'id' => $m->id,
+                'nom' => $m->nom,
+                'prenom' => $m->prenom,
+                'telephone' => $m->telephone,
+                'email' => $m->email,
+                'specialite' => $m->specialite->nom ?? 'Généraliste',
+                'tarif_heure' => $m->tarif_heure,
+                'heures_mois' => $m->heures_mois,
+                'montant_total' => $m->tarif_heure * $m->heures_mois,
+                'edit_url' => route('medecins.edit', $m->id),
+                'delete_url' => route('medecins.destroy', $m->id),
+            ];
+        }));
     }
 
    public function toggleDispo(Request $request)

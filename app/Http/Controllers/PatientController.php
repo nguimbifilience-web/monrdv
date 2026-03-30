@@ -5,99 +5,170 @@ namespace App\Http\Controllers;
 use App\Models\Patient;
 use App\Models\Medecin;
 use App\Models\Assurance;
+use App\Models\ActivityLog;
 use Illuminate\Http\Request;
 
 class PatientController extends Controller
 {
-    /**
-     * Affiche la liste des patients
-     */
     public function index(Request $request)
     {
-        $patients = Patient::with('medecin')
-            ->filter($request->only(['search', 'medecin_id', 'est_assure']))
+        $patients = Patient::with(['medecin', 'assurance'])
+            ->filter($request->only(['search', 'medecin_id', 'est_assure', 'assurance_id']))
             ->latest()
             ->paginate(10)
             ->withQueryString();
 
-        $medecins = Medecin::all();
+        $medecins = Medecin::orderBy('nom')->get();
+        $assurances = Assurance::orderBy('nom')->get();
 
-        return view('patients.index', compact('patients', 'medecins'));
+        $totalPatients = Patient::count();
+        $patientsAssures = Patient::where('est_assure', true)->whereNotNull('assurance_id')->count();
+
+        return view('patients.index', compact(
+            'patients', 'medecins', 'assurances',
+            'totalPatients', 'patientsAssures'
+        ));
     }
 
-    /**
-     * Affiche le formulaire de création
-     */
-    public function create() 
+    public function create()
     {
-        $medecins = Medecin::all();
-        $assurances = Assurance::all();
-
+        $medecins = Medecin::with('specialite')->orderBy('nom')->get();
+        $assurances = Assurance::orderBy('nom')->get();
         return view('patients.create', compact('medecins', 'assurances'));
     }
 
-    /**
-     * Enregistre un nouveau patient
-     */
-    public function store(Request $request) 
+    public function store(Request $request)
     {
         $request->validate([
             'nom' => 'required|string|max:255',
             'prenom' => 'required|string|max:255',
             'telephone' => 'required',
             'est_assure' => 'required|boolean',
+            'assurance_id' => 'nullable|exists:assurances,id',
             'medecin_id' => 'nullable|exists:medecins,id',
         ]);
 
-        Patient::create($request->all());
+        $patient = Patient::create($request->all());
+        ActivityLog::log('creation', "Patient créé : {$patient->nom} {$patient->prenom}", $patient);
 
         return redirect()->route('patients.index')
                          ->with('success', 'Le patient a été enregistré avec succès.');
     }
 
-    /**
-     * Affiche les détails d'un patient
-     */
     public function show(Patient $patient)
     {
-        return view('patients.show', compact('patient'));
+        $patient->load([
+            'assurance',
+            'medecin.specialite',
+            'rendezvous' => function ($q) {
+                $q->with('medecin.specialite')->orderBy('date_rv', 'desc');
+            },
+        ]);
+
+        $medecinsConsultes = Medecin::with('specialite')
+            ->whereHas('rendezvous', function ($q) use ($patient) {
+                $q->where('patient_id', $patient->id);
+            })->get();
+
+        return view('patients.show', compact('patient', 'medecinsConsultes'));
     }
 
-    /**
-     * Affiche le formulaire d'édition
-     */
     public function edit(Patient $patient)
     {
-        $medecins = Medecin::all();
-        $assurances = Assurance::all();
-
+        $medecins = Medecin::with('specialite')->orderBy('nom')->get();
+        $assurances = Assurance::orderBy('nom')->get();
         return view('patients.edit', compact('patient', 'medecins', 'assurances'));
     }
 
-    /**
-     * Met à jour un patient
-     */
     public function update(Request $request, Patient $patient)
     {
         $request->validate([
             'nom' => 'required|string|max:255',
             'prenom' => 'required|string|max:255',
             'telephone' => 'required',
+            'est_assure' => 'required|boolean',
+            'assurance_id' => 'nullable|exists:assurances,id',
+            'medecin_id' => 'nullable|exists:medecins,id',
         ]);
 
+        $oldValues = $patient->toArray();
         $patient->update($request->all());
+        ActivityLog::log('modification', "Patient modifié : {$patient->nom} {$patient->prenom}", $patient, $oldValues, $request->all());
 
         return redirect()->route('patients.index')
                          ->with('success', 'Dossier patient mis à jour.');
     }
 
-    /**
-     * Supprime un patient
-     */
     public function destroy(Patient $patient)
     {
+        ActivityLog::log('suppression', "Patient supprimé : {$patient->nom} {$patient->prenom}", $patient);
         $patient->delete();
         return redirect()->route('patients.index')
                          ->with('success', 'Patient supprimé.');
+    }
+
+    public function updateNotes(Request $request, Patient $patient)
+    {
+        $data = $request->validate([
+            'notes_medicales' => 'nullable|string',
+            'observations' => 'nullable|string',
+        ]);
+
+        $patient->update($data);
+        ActivityLog::log('modification', "Notes médicales mises à jour pour {$patient->nom} {$patient->prenom}", $patient);
+
+        return back()->with('success', 'Dossier médical mis à jour.');
+    }
+
+    public function ajaxSearch(Request $request)
+    {
+        $query = Patient::with(['medecin', 'assurance']);
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('nom', 'like', "%{$search}%")
+                  ->orWhere('prenom', 'like', "%{$search}%")
+                  ->orWhere('telephone', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->filled('medecin_id')) {
+            $query->where('medecin_id', $request->medecin_id);
+        }
+
+        if ($request->filled('assurance_id')) {
+            $query->where('assurance_id', $request->assurance_id);
+        }
+
+        if ($request->has('est_assure') && $request->est_assure !== '') {
+            $query->where('est_assure', $request->est_assure);
+        }
+
+        return response()->json($query->latest()->limit(50)->get()->map(function ($p) {
+            return [
+                'id' => $p->id,
+                'nom' => $p->nom,
+                'prenom' => $p->prenom,
+                'telephone' => $p->telephone,
+                'email' => $p->email,
+                'quartier' => $p->quartier,
+                'est_assure' => $p->est_assure,
+                'assurance_nom' => $p->assurance->nom ?? null,
+                'medecin_nom' => $p->medecin ? 'Dr. ' . $p->medecin->nom : null,
+                'show_url' => route('patients.show', $p->id),
+                'edit_url' => route('patients.edit', $p->id),
+                'delete_url' => route('patients.destroy', $p->id),
+            ];
+        }));
+    }
+
+    public function checkEmail(Request $request)
+    {
+        $exists = Patient::where('email', $request->email)
+            ->when($request->filled('exclude_id'), fn($q) => $q->where('id', '!=', $request->exclude_id))
+            ->exists();
+
+        return response()->json(['exists' => $exists]);
     }
 }

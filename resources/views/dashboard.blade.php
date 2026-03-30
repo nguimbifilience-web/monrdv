@@ -3,7 +3,7 @@
 @section('content')
 <div class="mb-8">
     <h1 class="text-2xl font-bold text-gray-800">Tableau de Bord</h1>
-    <p class="text-sm text-gray-500">Bienvenue sur MonRDV - Choisissez une section</p>
+    <p class="text-sm text-gray-500">Bienvenue, {{ auth()->user()->name }} — MonRDV</p>
 </div>
 
 <div class="grid grid-cols-1 md:grid-cols-3 gap-8">

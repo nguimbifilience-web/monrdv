@@ -7,11 +7,12 @@ use Illuminate\Database\Eloquent\Model;
 class Assurance extends Model
 {
     protected $fillable = [
-        'nom',              // Nom de l'assurance
-        'nom_referent',     // Nom du contact principal
-        'telephone',        // Contact téléphonique
-        'email',            // Contact mail
-        'taux_couverture'   // Pourcentage (ex: 80)
+        'nom',
+        'type',
+        'nom_referent',
+        'telephone',
+        'email',
+        'taux_couverture',
     ];
 
     public function patients()

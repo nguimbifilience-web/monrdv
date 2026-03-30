@@ -17,8 +17,12 @@ services:
             XDEBUG_MODE: '${SAIL_XDEBUG_MODE:-off}'
             XDEBUG_CONFIG: '${SAIL_XDEBUG_CONFIG:-client_host=host.docker.internal}'
             IGNITION_LOCAL_SITES_PATH: '${PWD}'
+            PHP_OPCACHE_ENABLE: 1
+            PHP_OPCACHE_VALIDATE_TIMESTAMPS: 1
         volumes:
             - '.:/var/www/html'
+            - sail-vendor:/var/www/html/vendor
+            - sail-node-modules:/var/www/html/node_modules
         networks:
             - sail
         depends_on:
@@ -53,4 +57,8 @@ networks:
         driver: bridge
 volumes:
     sail-mysql:
+        driver: local
+    sail-vendor:
+        driver: local
+    sail-node-modules:
         driver: local

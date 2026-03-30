@@ -57,12 +57,12 @@
                     </td>
                     <td class="p-5">
                         <div class="flex items-center gap-2">
-                            <div class="w-8 h-8 {{ $log->user->is_admin ? 'bg-orange-500' : 'bg-blue-500' }} rounded-lg flex items-center justify-center text-white text-[10px] font-black">
+                            <div class="w-8 h-8 {{ $log->user->isAdmin() ? 'bg-orange-500' : 'bg-blue-500' }} rounded-lg flex items-center justify-center text-white text-[10px] font-black">
                                 {{ strtoupper(substr($log->user->name, 0, 2)) }}
                             </div>
                             <div>
                                 <span class="text-xs font-black text-blue-900">{{ $log->user->name }}</span>
-                                <p class="text-[9px] text-gray-400">{{ $log->user->is_admin ? 'Admin' : 'Utilisateur' }}</p>
+                                <p class="text-[9px] text-gray-400">{{ ucfirst($log->user->role) }}</p>
                             </div>
                         </div>
                     </td>

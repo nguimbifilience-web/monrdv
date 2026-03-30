@@ -10,7 +10,7 @@ class Patient extends Model
     protected $fillable = [
         'nom', 'prenom', 'telephone', 'email', 'quartier',
         'est_assure', 'assurance_id', 'medecin_id',
-        'notes_medicales', 'observations',
+        'notes_medicales', 'observations', 'user_id',
     ];
 
     public function scopeFilter(Builder $query, array $filters)
@@ -30,6 +30,10 @@ class Patient extends Model
         });
     }
 
+    public function user() {
+        return $this->belongsTo(User::class);
+    }
+
     public function assurance() {
         return $this->belongsTo(Assurance::class);
     }
@@ -40,5 +44,9 @@ class Patient extends Model
 
     public function rendezvous() {
         return $this->hasMany(RendezVous::class, 'patient_id');
+    }
+
+    public function documents() {
+        return $this->hasMany(DocumentPatient::class);
     }
 }

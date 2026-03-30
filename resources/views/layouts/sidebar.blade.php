@@ -25,9 +25,7 @@
             <span class="font-bold text-sm uppercase tracking-widest text-[10px]">Dashboard</span>
         </a>
 
-        @if(auth()->user()->is_admin)
-
-        <!-- Patients -->
+        <!-- Patients (Admin + Secrétaire) -->
         <a href="{{ route('patients.index') }}"
            class="flex items-center gap-4 px-6 py-4 rounded-2xl
            {{ request()->routeIs('patients.*') ? 'bg-orange-500 text-white' : 'text-blue-200 hover:bg-white/10' }} transition-all">
@@ -35,15 +33,7 @@
             <span class="font-bold text-sm uppercase tracking-widest text-[10px]">Patients</span>
         </a>
 
-        <!-- Médecins -->
-        <a href="{{ route('medecins.index') }}"
-           class="flex items-center gap-4 px-6 py-4 rounded-2xl
-           {{ request()->routeIs('medecins.*') && !request()->routeIs('medecins.schedule') ? 'bg-orange-500 text-white' : 'text-blue-200 hover:bg-white/10' }} transition-all">
-            <i class="fas fa-user-md"></i>
-            <span class="font-bold text-sm uppercase tracking-widest text-[10px]">Médecins</span>
-        </a>
-
-        <!-- Rendez-vous -->
+        <!-- Rendez-vous (Admin + Secrétaire) -->
         <a href="{{ route('rendezvous.index') }}"
            class="flex items-center gap-4 px-6 py-4 rounded-2xl
            {{ request()->routeIs('rendezvous.*') ? 'bg-orange-500 text-white' : 'text-blue-200 hover:bg-white/10' }} transition-all">
@@ -51,7 +41,7 @@
             <span class="font-bold text-sm uppercase tracking-widest text-[10px]">Rendez-vous</span>
         </a>
 
-        <!-- Planning -->
+        <!-- Planning (Admin + Secrétaire) -->
         <a href="{{ route('medecins.schedule') }}"
            class="flex items-center gap-4 px-6 py-4 rounded-2xl
            {{ request()->routeIs('medecins.schedule') ? 'bg-orange-500 text-white' : 'text-blue-200 hover:bg-white/10' }} transition-all">
@@ -59,23 +49,7 @@
             <span class="font-bold text-sm uppercase tracking-widest text-[10px]">Planning</span>
         </a>
 
-        <!-- Assurances -->
-        <a href="{{ route('assurances.index') }}"
-           class="flex items-center gap-4 px-6 py-4 rounded-2xl
-           {{ request()->routeIs('assurances.*') ? 'bg-orange-500 text-white' : 'text-blue-200 hover:bg-white/10' }} transition-all">
-            <i class="fas fa-shield-alt"></i>
-            <span class="font-bold text-sm uppercase tracking-widest text-[10px]">Assurances</span>
-        </a>
-
-        <!-- Spécialités -->
-        <a href="{{ route('specialites.index') }}"
-           class="flex items-center gap-4 px-6 py-4 rounded-2xl
-           {{ request()->routeIs('specialites.*') ? 'bg-orange-500 text-white' : 'text-blue-200 hover:bg-white/10' }} transition-all">
-            <i class="fas fa-stethoscope"></i>
-            <span class="font-bold text-sm uppercase tracking-widest text-[10px]">Spécialités</span>
-        </a>
-
-        <!-- Historique -->
+        <!-- Consultations (Admin + Secrétaire) -->
         <a href="{{ route('consultations.index') }}"
            class="flex items-center gap-4 px-6 py-4 rounded-2xl
            {{ request()->routeIs('consultations.*') ? 'bg-orange-500 text-white' : 'text-blue-200 hover:bg-white/10' }} transition-all">
@@ -83,7 +57,41 @@
             <span class="font-bold text-sm uppercase tracking-widest text-[10px]">Historique</span>
         </a>
 
-        <!-- Traçabilité (admin uniquement) -->
+        @if(auth()->user()->isAdmin())
+
+        <!-- Médecins (Admin uniquement) -->
+        <a href="{{ route('medecins.index') }}"
+           class="flex items-center gap-4 px-6 py-4 rounded-2xl
+           {{ request()->routeIs('medecins.*') && !request()->routeIs('medecins.schedule') ? 'bg-orange-500 text-white' : 'text-blue-200 hover:bg-white/10' }} transition-all">
+            <i class="fas fa-user-md"></i>
+            <span class="font-bold text-sm uppercase tracking-widest text-[10px]">Médecins</span>
+        </a>
+
+        <!-- Assurances (Admin uniquement) -->
+        <a href="{{ route('assurances.index') }}"
+           class="flex items-center gap-4 px-6 py-4 rounded-2xl
+           {{ request()->routeIs('assurances.*') ? 'bg-orange-500 text-white' : 'text-blue-200 hover:bg-white/10' }} transition-all">
+            <i class="fas fa-shield-alt"></i>
+            <span class="font-bold text-sm uppercase tracking-widest text-[10px]">Assurances</span>
+        </a>
+
+        <!-- Spécialités (Admin uniquement) -->
+        <a href="{{ route('specialites.index') }}"
+           class="flex items-center gap-4 px-6 py-4 rounded-2xl
+           {{ request()->routeIs('specialites.*') ? 'bg-orange-500 text-white' : 'text-blue-200 hover:bg-white/10' }} transition-all">
+            <i class="fas fa-stethoscope"></i>
+            <span class="font-bold text-sm uppercase tracking-widest text-[10px]">Spécialités</span>
+        </a>
+
+        <!-- Comptes (Admin uniquement) -->
+        <a href="{{ route('comptes.index') }}"
+           class="flex items-center gap-4 px-6 py-4 rounded-2xl
+           {{ request()->routeIs('comptes.*') ? 'bg-orange-500 text-white' : 'text-blue-200 hover:bg-white/10' }} transition-all">
+            <i class="fas fa-users-cog"></i>
+            <span class="font-bold text-sm uppercase tracking-widest text-[10px]">Comptes</span>
+        </a>
+
+        <!-- Traçabilité (Admin uniquement) -->
         <a href="{{ route('activites.index') }}"
            class="flex items-center gap-4 px-6 py-4 rounded-2xl
            {{ request()->routeIs('activites.*') ? 'bg-orange-500 text-white' : 'text-blue-200 hover:bg-white/10' }} transition-all">
@@ -98,12 +106,12 @@
     <div class="p-8 border-t border-white/10">
         <div class="flex items-center justify-between">
             <div class="flex items-center gap-3">
-                <div class="w-8 h-8 {{ auth()->user()->is_admin ? 'bg-orange-500' : 'bg-blue-500' }} rounded-lg flex items-center justify-center text-white text-xs font-black">
+                <div class="w-8 h-8 {{ auth()->user()->isAdmin() ? 'bg-orange-500' : 'bg-blue-500' }} rounded-lg flex items-center justify-center text-white text-xs font-black">
                     {{ strtoupper(substr(auth()->user()->name, 0, 2)) }}
                 </div>
                 <div>
                     <p class="text-white text-[10px] font-black uppercase tracking-tight">{{ auth()->user()->name }}</p>
-                    <p class="text-blue-400 text-[9px] italic">{{ auth()->user()->is_admin ? 'Administrateur' : 'Utilisateur' }}</p>
+                    <p class="text-blue-400 text-[9px] italic">{{ auth()->user()->isAdmin() ? 'Administrateur' : 'Secrétaire' }}</p>
                 </div>
             </div>
             <form action="{{ route('logout') }}" method="POST">

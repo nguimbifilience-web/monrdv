@@ -1,0 +1,205 @@
+@startuml MonRDV - Diagramme de Cas d'Utilisation
+
+title **MonRDV - Prise de Rendez-vous Medical a Distance**\nDiagramme de Cas d'Utilisation UML
+
+left to right direction
+skinparam actorStyle awesome
+skinparam packageStyle rectangle
+skinparam usecaseBackgroundColor #F0F7FF
+skinparam usecaseBorderColor #1E3A5F
+skinparam actorBackgroundColor #FFE0B2
+skinparam rectangleBackgroundColor #FFFFFF
+skinparam rectangleBorderColor #1E3A5F
+
+' ===== ACTEURS =====
+actor "Administrateur" as Admin #FFB74D
+actor "Secretaire" as Secretaire #CE93D8
+actor "Patient" as Patient #81D4FA
+actor "Medecin" as Medecin #A5D6A7
+
+' ===== SYSTEME PRINCIPAL =====
+rectangle "Systeme MonRDV - Prise de Rendez-vous a Distance" {
+
+    ' --- Authentification ---
+    package "Authentification" {
+        usecase "Se connecter" as UC_LOGIN
+        usecase "Se deconnecter" as UC_LOGOUT
+        usecase "Gerer son profil" as UC_PROFIL
+    }
+
+    ' --- Gestion des Patients ---
+    package "Gestion des Patients" {
+        usecase "Ajouter un patient" as UC_PAT_CREATE
+        usecase "Consulter la liste\ndes patients" as UC_PAT_LIST
+        usecase "Modifier un patient" as UC_PAT_EDIT
+        usecase "Supprimer un patient" as UC_PAT_DELETE
+        usecase "Voir fiche patient" as UC_PAT_SHOW
+        usecase "Mettre a jour les\nnotes medicales" as UC_PAT_NOTES
+        usecase "Rechercher un patient" as UC_PAT_SEARCH
+    }
+
+    ' --- Gestion des Medecins ---
+    package "Gestion des Medecins" {
+        usecase "Ajouter un medecin" as UC_MED_CREATE
+        usecase "Consulter la liste\ndes medecins" as UC_MED_LIST
+        usecase "Modifier un medecin" as UC_MED_EDIT
+        usecase "Supprimer un medecin" as UC_MED_DELETE
+        usecase "Gerer les disponibilites" as UC_MED_DISPO
+        usecase "Consulter le planning\nglobal" as UC_MED_PLANNING
+    }
+
+    ' --- Gestion des Rendez-vous ---
+    package "Gestion des Rendez-vous" {
+        usecase "Prendre un rendez-vous\na distance" as UC_RDV_CREATE
+        usecase "Consulter la liste\ndes rendez-vous" as UC_RDV_LIST
+        usecase "Modifier un rendez-vous" as UC_RDV_EDIT
+        usecase "Annuler un rendez-vous" as UC_RDV_CANCEL
+        usecase "Verifier les creneaux\ndisponibles" as UC_RDV_CRENEAUX
+        usecase "Detecter les conflits\nde planning" as UC_RDV_CONFLIT
+    }
+
+    ' --- Gestion des Consultations ---
+    package "Gestion des Consultations" {
+        usecase "Enregistrer une\nconsultation" as UC_CONSULT_CREATE
+        usecase "Consulter l'historique" as UC_CONSULT_LIST
+        usecase "Imprimer un ticket\nde paiement" as UC_CONSULT_TICKET
+        usecase "Calculer la part\nassurance" as UC_CONSULT_ASSUR
+        usecase "Calculer le montant\npatient" as UC_CONSULT_MONTANT
+        usecase "Voir les recettes\nmensuelles" as UC_CONSULT_RECETTES
+    }
+
+    ' --- Gestion des Specialites ---
+    package "Gestion des Specialites" {
+        usecase "Ajouter une specialite" as UC_SPEC_CREATE
+        usecase "Consulter les specialites" as UC_SPEC_LIST
+        usecase "Modifier une specialite" as UC_SPEC_EDIT
+    }
+
+    ' --- Gestion des Assurances ---
+    package "Gestion des Assurances" {
+        usecase "Ajouter une assurance" as UC_ASSUR_CREATE
+        usecase "Consulter les assurances" as UC_ASSUR_LIST
+        usecase "Modifier une assurance" as UC_ASSUR_EDIT
+    }
+
+    ' --- Tracabilite ---
+    package "Tracabilite & Audit" {
+        usecase "Consulter le journal\nd'activites" as UC_LOG
+        usecase "Filtrer par utilisateur\nou action" as UC_LOG_FILTER
+        usecase "Consulter le tableau\nde bord" as UC_DASHBOARD
+    }
+}
+
+' ===== RELATIONS ADMINISTRATEUR =====
+Admin --> UC_LOGIN
+Admin --> UC_LOGOUT
+Admin --> UC_PROFIL
+Admin --> UC_DASHBOARD
+
+Admin --> UC_PAT_CREATE
+Admin --> UC_PAT_LIST
+Admin --> UC_PAT_EDIT
+Admin --> UC_PAT_DELETE
+Admin --> UC_PAT_SHOW
+Admin --> UC_PAT_NOTES
+Admin --> UC_PAT_SEARCH
+
+Admin --> UC_MED_CREATE
+Admin --> UC_MED_LIST
+Admin --> UC_MED_EDIT
+Admin --> UC_MED_DELETE
+Admin --> UC_MED_DISPO
+Admin --> UC_MED_PLANNING
+
+Admin --> UC_RDV_CREATE
+Admin --> UC_RDV_LIST
+Admin --> UC_RDV_EDIT
+Admin --> UC_RDV_CANCEL
+
+Admin --> UC_CONSULT_CREATE
+Admin --> UC_CONSULT_LIST
+Admin --> UC_CONSULT_TICKET
+Admin --> UC_CONSULT_RECETTES
+
+Admin --> UC_SPEC_CREATE
+Admin --> UC_SPEC_LIST
+Admin --> UC_SPEC_EDIT
+
+Admin --> UC_ASSUR_CREATE
+Admin --> UC_ASSUR_LIST
+Admin --> UC_ASSUR_EDIT
+
+Admin --> UC_LOG
+Admin --> UC_LOG_FILTER
+
+' ===== RELATIONS SECRETAIRE =====
+Secretaire --> UC_LOGIN
+Secretaire --> UC_LOGOUT
+Secretaire --> UC_PROFIL
+Secretaire --> UC_DASHBOARD
+
+Secretaire --> UC_PAT_CREATE
+Secretaire --> UC_PAT_LIST
+Secretaire --> UC_PAT_EDIT
+Secretaire --> UC_PAT_SHOW
+Secretaire --> UC_PAT_SEARCH
+
+Secretaire --> UC_RDV_CREATE
+Secretaire --> UC_RDV_LIST
+Secretaire --> UC_RDV_EDIT
+Secretaire --> UC_RDV_CANCEL
+
+Secretaire --> UC_CONSULT_CREATE
+Secretaire --> UC_CONSULT_LIST
+Secretaire --> UC_CONSULT_TICKET
+Secretaire --> UC_CONSULT_RECETTES
+
+Secretaire --> UC_MED_PLANNING
+
+' ===== RELATIONS PATIENT =====
+Patient --> UC_RDV_CREATE
+Patient --> UC_RDV_LIST
+Patient --> UC_RDV_CANCEL
+Patient --> UC_RDV_CRENEAUX
+
+' ===== RELATIONS MEDECIN =====
+Medecin --> UC_MED_DISPO
+Medecin --> UC_MED_PLANNING
+Medecin --> UC_RDV_LIST
+Medecin --> UC_CONSULT_CREATE
+Medecin --> UC_CONSULT_LIST
+Medecin --> UC_PAT_NOTES
+
+' ===== RELATIONS INCLUDE =====
+UC_RDV_CREATE ..> UC_RDV_CRENEAUX : <<include>>
+UC_RDV_CREATE ..> UC_RDV_CONFLIT : <<include>>
+UC_CONSULT_CREATE ..> UC_CONSULT_ASSUR : <<include>>
+UC_CONSULT_CREATE ..> UC_CONSULT_MONTANT : <<include>>
+UC_LOG ..> UC_LOG_FILTER : <<extend>>
+
+' ===== NOTES =====
+note bottom of Patient
+  Le patient prend
+  rendez-vous a distance
+  via l'application
+end note
+
+note bottom of Admin
+  L'administrateur a
+  acces a toutes les
+  fonctionnalites
+end note
+
+note bottom of Secretaire
+  Le secretaire gere
+  les patients et les
+  prises de rendez-vous
+end note
+
+note bottom of Medecin
+  Le medecin gere ses
+  disponibilites et
+  ses consultations
+end note
+
+@enduml

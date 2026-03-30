@@ -63,7 +63,11 @@ class RendezVousController extends Controller
             $query->where('statut', $request->statut);
         }
 
-        $rendezvous = $query->orderBy('date_rv', 'desc')->orderBy('heure_rv', 'asc')->paginate(15)->withQueryString();
+        // En attente en premier, puis par date
+        $rendezvous = $query->orderByRaw("FIELD(statut, 'en_attente', 'confirme', 'termine', 'annule')")
+            ->orderBy('date_rv', 'desc')
+            ->paginate(15)
+            ->withQueryString();
         $medecins = Medecin::with('specialite')->orderBy('nom')->get();
 
         return view('rendezvous.index', compact('rendezvous', 'medecins'));
@@ -83,7 +87,7 @@ class RendezVousController extends Controller
     {
         $validated = $request->validate([
             'date_rv'    => 'required|date',
-            'heure_rv'   => 'required',
+            'heure_rv'   => 'nullable',
             'patient_id' => 'required|exists:patients,id',
             'medecin_id' => 'required|exists:medecins,id',
             'motif'      => 'nullable|string|max:255',
@@ -98,33 +102,24 @@ class RendezVousController extends Controller
             return back()->withInput()->with('error', 'Ce médecin ne travaille pas ce jour-là. Vérifiez son planning.');
         }
 
-        // Vérifier double réservation patient
-        $doublePatient = RendezVous::where('patient_id', $validated['patient_id'])
+        // Vérifier la limite de 15 RDV par jour
+        $nbRdvJour = RendezVous::where('medecin_id', $validated['medecin_id'])
             ->where('date_rv', $validated['date_rv'])
-            ->where('heure_rv', $validated['heure_rv'])
             ->where('statut', '!=', 'annule')
-            ->exists();
+            ->count();
 
-        if ($doublePatient) {
-            return back()->withInput()->with('error', 'Ce patient a déjà un rendez-vous à cette date et heure.');
+        if ($nbRdvJour >= 15) {
+            return back()->withInput()->with('error', 'Ce médecin a atteint la limite de 15 rendez-vous pour cette journée.');
         }
 
-        // Vérifier médecin déjà occupé
-        $medecinOccupe = RendezVous::where('medecin_id', $validated['medecin_id'])
-            ->where('date_rv', $validated['date_rv'])
-            ->where('heure_rv', $validated['heure_rv'])
-            ->where('statut', '!=', 'annule')
-            ->exists();
-
-        if ($medecinOccupe) {
-            return back()->withInput()->with('error', 'Ce médecin est déjà occupé à cette date et heure.');
-        }
+        // RDV créé par le staff → statut confirmé directement
+        $validated['statut'] = 'confirme';
 
         $rdv = RendezVous::create($validated);
 
         $patient = Patient::find($validated['patient_id']);
         $medecin = Medecin::find($validated['medecin_id']);
-        ActivityLog::log('creation', "RDV créé : {$patient->nom} {$patient->prenom} avec Dr. {$medecin->nom} le {$validated['date_rv']} à {$validated['heure_rv']}", $rdv);
+        ActivityLog::log('creation', "RDV créé : {$patient->nom} {$patient->prenom} avec Dr. {$medecin->nom} le {$validated['date_rv']}", $rdv);
 
         return redirect()->route('rendezvous.index')
                          ->with('success', 'Le rendez-vous a été enregistré !');
@@ -208,6 +203,16 @@ class RendezVousController extends Controller
         ActivityLog::log('annulation', "RDV #{$id} annulé", $rdv);
 
         return back()->with('success', 'Rendez-vous annulé.');
+    }
+
+    public function confirmer($id)
+    {
+        $rdv = RendezVous::findOrFail($id);
+        $rdv->update(['statut' => 'confirme']);
+
+        ActivityLog::log('modification', "RDV #{$id} confirmé pour {$rdv->patient->nom} {$rdv->patient->prenom}", $rdv);
+
+        return back()->with('success', 'Rendez-vous confirmé !');
     }
 
     /**

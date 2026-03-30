@@ -4,14 +4,17 @@ namespace App\Http\Controllers;
 
 use App\Models\Medecin;
 use App\Models\Specialite;
+use App\Models\User;
 use App\Models\ActivityLog;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class MedecinController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Medecin::with('specialite');
+        $query = Medecin::with(['specialite', 'user']);
 
         if ($request->filled('search')) {
             $search = $request->search;
@@ -38,22 +41,40 @@ class MedecinController extends Controller
         return view('medecins.create', compact('specialites'));
     }
 
-    public function store(Request $request) 
+    public function store(Request $request)
     {
-        // On valide exactement ce que la base de données attend
         $validated = $request->validate([
             'nom'           => 'required',
             'prenom'        => 'required',
             'specialite_id' => 'required',
             'telephone'     => 'nullable',
+            'email'         => 'required|email|unique:users,email',
             'tarif_heure'   => 'required|numeric|min:0',
             'heures_mois'   => 'required|integer|min:0',
         ]);
 
-        $medecin = Medecin::create($validated);
+        // Générer un mot de passe
+        $password = Str::random(8);
+
+        // Créer le compte utilisateur du médecin
+        $user = User::create([
+            'name' => 'Dr. ' . $validated['nom'] . ' ' . $validated['prenom'],
+            'email' => $validated['email'],
+            'password' => Hash::make($password),
+            'plain_password' => $password,
+            'role' => 'medecin',
+            'email_verified_at' => now(),
+        ]);
+
+        // Créer le médecin lié au compte
+        $medecinData = collect($validated)->except('email')->toArray();
+        $medecinData['user_id'] = $user->id;
+        $medecin = Medecin::create($medecinData);
+
         ActivityLog::log('creation', "Médecin créé : Dr. {$medecin->nom} {$medecin->prenom}", $medecin);
 
-        return redirect()->route('medecins.index')->with('success', 'Médecin ajouté !');
+        return redirect()->route('medecins.index')
+            ->with('success', "Médecin ajouté ! Identifiants : {$validated['email']} / {$password}");
     }
 
     // Affiche la page avec tous les calendriers FullCalendar

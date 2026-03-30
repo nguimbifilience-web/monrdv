@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MonRDV - Connexion</title>
     <style>{!! file_get_contents(public_path('css/app.css')) !!}</style>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@hotwired/turbo@8.0.4/dist/turbo.es2017-esm.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         .watermark {
@@ -192,6 +193,11 @@
                 <button type="submit" class="w-full bg-blue-900 text-white py-4 rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-blue-800 shadow-lg shadow-blue-900/30 transition-all hover:shadow-xl hover:-translate-y-0.5">
                     <i class="fas fa-sign-in-alt mr-2"></i> Se connecter
                 </button>
+
+                <p class="text-center text-xs text-gray-400 font-bold mt-4">
+                    Vous etes patient ?
+                    <a href="{{ route('register') }}" class="text-cyan-500 hover:text-cyan-600 transition-colors">Creer un compte</a>
+                </p>
             </form>
         </div>
     </div>

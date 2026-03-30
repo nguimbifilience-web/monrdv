@@ -14,20 +14,22 @@ class AdminSeeder extends Seeder
         User::updateOrCreate(
             ['email' => 'admin@monrdv.ga'],
             [
-                'name' => 'Administrateur',
+                'name' => 'NGUIMBI FILIENCE',
                 'password' => Hash::make('password'),
-                'is_admin' => true,
+                'plain_password' => 'password',
+                'role' => 'admin',
                 'email_verified_at' => now(),
             ]
         );
 
-        // Compte Utilisateur simple
+        // Compte Secrétaire
         User::updateOrCreate(
-            ['email' => 'user@monrdv.ga'],
+            ['email' => 'secretaire@monrdv.ga'],
             [
-                'name' => 'Utilisateur',
+                'name' => 'Secrétaire 1',
                 'password' => Hash::make('password'),
-                'is_admin' => false,
+                'plain_password' => 'password',
+                'role' => 'secretaire',
                 'email_verified_at' => now(),
             ]
         );

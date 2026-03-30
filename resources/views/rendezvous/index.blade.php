@@ -17,6 +17,27 @@
         </div>
     </div>
 
+    {{-- ALERTE RDV EN ATTENTE --}}
+    @php
+        $nbEnAttente = \App\Models\RendezVous::where('statut', 'en_attente')->count();
+    @endphp
+    @if($nbEnAttente > 0)
+    <div class="bg-yellow-50 border-l-4 border-yellow-400 rounded-2xl p-4 mb-6 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-yellow-400 rounded-xl flex items-center justify-center text-white">
+                <i class="fas fa-bell"></i>
+            </div>
+            <div>
+                <p class="font-black text-yellow-800 text-sm">{{ $nbEnAttente }} rendez-vous en attente de confirmation</p>
+                <p class="text-[10px] text-yellow-600 font-bold">Demandes de rendez-vous en ligne des patients</p>
+            </div>
+        </div>
+        <a href="{{ route('rendezvous.index', ['statut' => 'en_attente']) }}" class="bg-yellow-400 text-white px-4 py-2 rounded-xl font-black text-[10px] uppercase hover:bg-yellow-500 transition-all">
+            Voir les demandes
+        </a>
+    </div>
+    @endif
+
     {{-- FILTRES --}}
     <div class="bg-white rounded-2xl shadow-sm border border-gray-50 p-4 mb-6">
         <form action="{{ route('rendezvous.index') }}" method="GET" class="flex items-center gap-4">
@@ -71,10 +92,15 @@
             </thead>
             <tbody class="divide-y divide-gray-50">
                 @forelse($rendezvous as $rdv)
-                <tr class="hover:bg-gray-50/30 transition-colors {{ $rdv->statut === 'annule' ? 'opacity-50' : '' }}">
+                <tr class="hover:bg-gray-50/30 transition-colors {{ $rdv->statut === 'annule' ? 'opacity-50' : '' }} {{ $rdv->statut === 'en_attente' ? 'bg-yellow-50/50' : '' }}">
                     <td class="p-5">
                         <div class="font-black text-blue-900 text-xs">{{ \Carbon\Carbon::parse($rdv->date_rv)->format('d/m/Y') }}</div>
-                        <div class="text-[10px] text-cyan-500 font-bold"><i class="fas fa-clock mr-1"></i>{{ $rdv->heure_rv }}</div>
+                        @if($rdv->heure_rv)
+                            <div class="text-[10px] text-cyan-500 font-bold"><i class="fas fa-clock mr-1"></i>{{ $rdv->heure_rv }}</div>
+                        @endif
+                        @if($rdv->source === 'en_ligne')
+                            <span class="bg-purple-50 text-purple-500 px-2 py-0.5 rounded text-[8px] font-black uppercase mt-1 inline-block"><i class="fas fa-globe mr-1"></i>En ligne</span>
+                        @endif
                     </td>
                     <td class="p-5">
                         <span class="font-black text-blue-900 text-xs uppercase">{{ $rdv->patient->nom ?? '' }} {{ $rdv->patient->prenom ?? '' }}</span>
@@ -104,6 +130,14 @@
                     </td>
                     <td class="p-5">
                         <div class="flex justify-center gap-1">
+                            @if($rdv->statut === 'en_attente')
+                                <form action="{{ route('rendezvous.confirmer', $rdv->id) }}" method="POST" onsubmit="return confirm('Confirmer ce rendez-vous ?')">
+                                    @csrf @method('PATCH')
+                                    <button type="submit" class="w-8 h-8 flex items-center justify-center bg-green-50 text-green-600 rounded-lg hover:bg-green-500 hover:text-white transition-all" title="Confirmer le RDV">
+                                        <i class="fas fa-check text-xs"></i>
+                                    </button>
+                                </form>
+                            @endif
                             @if($rdv->statut !== 'annule' && $rdv->statut !== 'termine')
                                 <form action="{{ route('rendezvous.annuler', $rdv->id) }}" method="POST" onsubmit="return confirm('Annuler ce rendez-vous ?')">
                                     @csrf @method('PATCH')
@@ -162,13 +196,13 @@
         <form action="{{ route('consultations.store') }}" method="POST" id="consultForm">
             @csrf
 
-            {{-- 1. Sélection Patient --}}
+            {{-- 1. Sélection Patient (uniquement ceux avec RDV confirmé) --}}
             <div class="mb-4">
-                <label class="block text-[10px] font-black uppercase text-gray-400 mb-2">Patient</label>
+                <label class="block text-[10px] font-black uppercase text-gray-400 mb-2">Patient (RDV confirmés uniquement)</label>
                 <select name="patient_id" id="select_patient" onchange="chargerInfoPatient(this.value)"
                     class="w-full bg-gray-50 border-none rounded-xl p-4 font-bold text-blue-900 text-sm" required>
                     <option value="">-- Sélectionner un patient --</option>
-                    @foreach(\App\Models\Patient::orderBy('nom')->get() as $p)
+                    @foreach(\App\Models\Patient::whereHas('rendezvous', fn($q) => $q->where('statut', 'confirme'))->orderBy('nom')->get() as $p)
                         <option value="{{ $p->id }}">{{ strtoupper($p->nom) }} {{ $p->prenom }} — {{ $p->telephone }}</option>
                     @endforeach
                 </select>

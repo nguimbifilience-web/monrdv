@@ -9,6 +9,10 @@ class Disponibilite extends Model
     // TRÈS IMPORTANT : Sans cette ligne, l'enregistrement échoue silencieusement
     protected $fillable = ['medecin_id', 'date_travail'];
 
+    protected $casts = [
+        'date_travail' => 'date',
+    ];
+
     public function medecin()
     {
         return $this->belongsTo(Medecin::class);

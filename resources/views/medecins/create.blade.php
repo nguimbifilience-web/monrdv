@@ -61,6 +61,15 @@
                     </div>
                 </div>
 
+                <div class="mb-6">
+                    <label class="block text-xs font-black text-gray-500 uppercase tracking-wider mb-2">
+                        <i class="fas fa-envelope text-cyan-500 mr-1"></i> Email (compte de connexion)
+                    </label>
+                    <input type="email" name="email" value="{{ old('email') }}" required placeholder="dr.nom@monrdv.ga"
+                        class="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 focus:border-blue-500 focus:bg-white focus:ring-0 transition shadow-sm">
+                    <p class="text-[10px] text-gray-400 mt-1">Un compte de connexion sera automatiquement créé pour le médecin.</p>
+                </div>
+
                 {{-- Tarification --}}
                 <div class="bg-blue-50 rounded-2xl p-6 border border-blue-100 mb-6">
                     <h3 class="text-xs font-black text-blue-900 uppercase tracking-widest mb-4">

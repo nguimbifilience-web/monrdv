@@ -69,7 +69,7 @@
                         <span class="px-3 py-1 bg-indigo-50 text-indigo-600 rounded-lg text-[11px] font-black uppercase">{{ $medecin->specialite->nom ?? 'Généraliste' }}</span>
                     </td>
                     <td class="p-5 text-sm text-gray-500 font-medium">
-                        <span class="text-gray-700 flex items-center"><i class="fas fa-envelope mr-2 text-gray-300 text-[10px]"></i>{{ $medecin->email ?? 'contact@monrdv.ga' }}</span>
+                        <span class="text-gray-700 flex items-center"><i class="fas fa-envelope mr-2 text-gray-300 text-[10px]"></i>{{ $medecin->email ?? 'Pas de compte' }}</span>
                         <span class="text-[11px] text-blue-500 font-bold mt-1"><i class="fas fa-phone-alt mr-2 text-gray-300 text-[10px]"></i>{{ $medecin->telephone }}</span>
                     </td>
                     <td class="p-5 text-center"><span class="bg-cyan-50 text-cyan-600 px-3 py-1 rounded-lg text-[11px] font-black">{{ number_format($medecin->tarif_heure, 0, ',', ' ') }} F</span></td>

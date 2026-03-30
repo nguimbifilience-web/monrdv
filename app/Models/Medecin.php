@@ -10,7 +10,18 @@ class Medecin extends Model
     use HasFactory;
 
     // Autorise l'enregistrement massif de ces colonnes
-    protected $fillable = ['nom', 'prenom', 'telephone', 'specialite_id', 'tarif_heure', 'heures_mois'];
+    protected $fillable = ['nom', 'prenom', 'telephone', 'specialite_id', 'tarif_heure', 'heures_mois', 'user_id'];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    // Récupérer l'email du compte utilisateur lié
+    public function getEmailAttribute()
+    {
+        return $this->user?->email;
+    }
 
     // Relation pour récupérer le NOM de la spécialité
     public function specialite()

@@ -1,0 +1,17 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class DocumentPatient extends Model
+{
+    protected $table = 'documents_patient';
+
+    protected $fillable = ['patient_id', 'nom', 'type', 'fichier'];
+
+    public function patient()
+    {
+        return $this->belongsTo(Patient::class);
+    }
+}

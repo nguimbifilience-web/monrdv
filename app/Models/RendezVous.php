@@ -13,11 +13,12 @@ class RendezVous extends Model
 
     // On utilise exactement les noms de ton DESCRIBE MySQL
     protected $fillable = [
-        'date_rv', 
-        'heure_rv', 
-        'motif', 
-        'statut', 
-        'patient_id', 
+        'date_rv',
+        'heure_rv',
+        'motif',
+        'statut',
+        'source',
+        'patient_id',
         'medecin_id'
     ];
 

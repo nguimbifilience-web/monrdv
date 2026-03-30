@@ -18,7 +18,8 @@
       "Bash(wsl whoami:*)",
       "Bash(docker restart:*)",
       "Bash(wsl bash:*)",
-      "Bash(docker cp:*)"
+      "Bash(docker cp:*)",
+      "Bash(grep -E \"\\\\.\\(php|blade\\\\.php\\)$\")"
     ]
   }
 }

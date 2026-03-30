@@ -28,7 +28,10 @@
             <div class="grid grid-cols-2 gap-6 mb-6">
                 {{-- Patient --}}
                 <div>
-                    <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Patient</label>
+                    <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">
+                        <span class="bg-blue-900 text-white w-5 h-5 rounded-full inline-flex items-center justify-center text-[9px] mr-1">1</span>
+                        Patient
+                    </label>
                     <div class="relative">
                         <input type="hidden" name="patient_id" id="patient_id_hidden" value="{{ old('patient_id') }}" required>
                         <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 text-sm"></i>
@@ -42,8 +45,11 @@
 
                 {{-- Médecin --}}
                 <div>
-                    <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Médecin</label>
-                    <select name="medecin_id" id="select_medecin" required onchange="chargerCreneaux()"
+                    <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">
+                        <span class="bg-blue-900 text-white w-5 h-5 rounded-full inline-flex items-center justify-center text-[9px] mr-1">2</span>
+                        Médecin
+                    </label>
+                    <select name="medecin_id" id="select_medecin" required onchange="chargerPlanning()"
                         class="w-full bg-gray-50 border-2 border-gray-100 rounded-2xl p-4 font-bold text-blue-900 text-sm focus:border-cyan-400 focus:ring-0">
                         <option value="">Sélectionner un médecin...</option>
                         @foreach($medecins as $medecin)
@@ -53,44 +59,37 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-2 gap-6 mb-6">
-                {{-- Date --}}
-                <div>
-                    <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Date du rendez-vous</label>
-                    <input type="date" name="date_rv" id="input_date" value="{{ old('date_rv', date('Y-m-d')) }}" required
-                        onchange="chargerCreneaux()"
-                        class="w-full bg-gray-50 border-2 border-gray-100 rounded-2xl p-4 font-bold text-blue-900 text-sm focus:border-cyan-400 focus:ring-0">
+            {{-- Planning FullCalendar du médecin --}}
+            <div class="mb-6">
+                <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">
+                    <span class="bg-blue-900 text-white w-5 h-5 rounded-full inline-flex items-center justify-center text-[9px] mr-1">3</span>
+                    Choisir une date sur le planning
+                </label>
+                <div id="planning_container" class="bg-gray-50 rounded-2xl p-6 border-2 border-gray-100">
+                    <p class="text-xs text-gray-400 italic text-center">
+                        <i class="fas fa-calendar-alt mr-1"></i> Sélectionnez un médecin pour voir son planning.
+                    </p>
                 </div>
-
-                {{-- Heure (champ caché + sélection visuelle) --}}
-                <div>
-                    <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Heure</label>
-                    <input type="hidden" name="heure_rv" id="input_heure" value="{{ old('heure_rv') }}" required>
-                    <div id="heureDisplay" class="w-full bg-gray-50 border-2 border-gray-100 rounded-2xl p-4 font-bold text-gray-400 text-sm">
-                        Sélectionnez un médecin et une date
-                    </div>
+                <div id="date_selectionnee" class="hidden mt-3 p-3 bg-cyan-50 border-2 border-cyan-200 rounded-xl flex items-center gap-2">
+                    <i class="fas fa-check-circle text-cyan-500"></i>
+                    <span class="text-xs font-black text-cyan-700">Date sélectionnée : <span id="date_label"></span></span>
                 </div>
-            </div>
-
-            {{-- Créneaux disponibles --}}
-            <div id="blocCreneaux" class="hidden mb-6">
-                <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Créneaux disponibles</label>
-
-                <div id="alertNonTravail" class="hidden mb-3 p-3 bg-orange-50 border border-orange-200 rounded-xl text-orange-600 text-xs font-bold">
-                    <i class="fas fa-exclamation-triangle mr-1"></i> Ce médecin ne travaille pas ce jour-là
-                </div>
-
-                <div id="grilleCrenaux" class="grid grid-cols-5 gap-2"></div>
+                <input type="hidden" name="date_rv" id="input_date" value="{{ old('date_rv') }}">
+                <input type="hidden" name="heure_rv" id="input_heure" value="">
             </div>
 
             {{-- Motif --}}
             <div class="mb-8">
-                <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Motif (optionnel)</label>
+                <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">
+                    <span class="bg-blue-900 text-white w-5 h-5 rounded-full inline-flex items-center justify-center text-[9px] mr-1">4</span>
+                    Motif (optionnel)
+                </label>
                 <textarea name="motif" rows="2" class="w-full bg-gray-50 border-2 border-gray-100 rounded-2xl p-4 font-bold text-gray-600 text-sm focus:border-cyan-400 focus:ring-0 resize-none" placeholder="Ex: Contrôle annuel, urgence...">{{ old('motif') }}</textarea>
             </div>
 
             <div class="flex gap-4">
-                <button type="submit" class="bg-blue-900 text-white font-black px-10 py-4 rounded-2xl hover:bg-blue-800 shadow-lg transition-all uppercase tracking-widest text-xs">
+                <button type="submit" id="btnSubmit" disabled
+                    class="bg-blue-900 text-white font-black px-10 py-4 rounded-2xl hover:bg-blue-800 shadow-lg transition-all uppercase tracking-widest text-xs disabled:opacity-50 disabled:cursor-not-allowed">
                     <i class="fas fa-save mr-2"></i> Enregistrer le RDV
                 </button>
                 <a href="{{ route('rendezvous.index') }}" class="py-4 px-6 text-gray-400 font-bold hover:text-red-500 uppercase text-[10px]">Annuler</a>
@@ -99,10 +98,41 @@
     </div>
 </div>
 
-<script>
-let timerPatientSearch;
-const allPatients = @json($patients->map(fn($p) => ['id' => $p->id, 'nom' => $p->nom, 'prenom' => $p->prenom, 'telephone' => $p->telephone]));
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales/fr.js"></script>
 
+<style>
+    #fullcalendar .fc-daygrid-day.jour-dispo {
+        background-color: #dcfce7 !important;
+        cursor: pointer;
+    }
+    #fullcalendar .fc-daygrid-day.jour-dispo:hover {
+        background-color: #bbf7d0 !important;
+    }
+    #fullcalendar .fc-daygrid-day.jour-complet {
+        background-color: #fef2f2 !important;
+        cursor: not-allowed;
+    }
+    #fullcalendar .fc-daygrid-day.jour-selectionne {
+        background-color: #22d3ee !important;
+    }
+    #fullcalendar .fc-daygrid-day.jour-selectionne .fc-daygrid-day-number {
+        color: white !important;
+        font-weight: 900;
+    }
+</style>
+
+<script>
+let calendar = null;
+let joursDispos = {};
+let joursComplets = {};
+let selectedDate = null;
+let timerPatientSearch;
+const allPatients = @json($patientsJson);
+const aujourdhui = '{{ now()->format("Y-m-d") }}';
+
+// ===== RECHERCHE PATIENT =====
 function rechercherPatient() {
     clearTimeout(timerPatientSearch);
     timerPatientSearch = setTimeout(() => {
@@ -142,7 +172,6 @@ function selectPatient(id, nom) {
     document.getElementById('patient_dropdown').classList.add('hidden');
 }
 
-// Fermer le dropdown si on clique ailleurs
 document.addEventListener('click', function(e) {
     const dropdown = document.getElementById('patient_dropdown');
     const input = document.getElementById('patient_search');
@@ -151,57 +180,110 @@ document.addEventListener('click', function(e) {
     }
 });
 
-function chargerCreneaux() {
+// ===== PLANNING FULLCALENDAR =====
+function chargerPlanning() {
     const medecinId = document.getElementById('select_medecin').value;
-    const date = document.getElementById('input_date').value;
+    const container = document.getElementById('planning_container');
 
-    if (!medecinId || !date) return;
+    selectedDate = null;
+    document.getElementById('input_date').value = '';
+    document.getElementById('btnSubmit').disabled = true;
+    document.getElementById('date_selectionnee').classList.add('hidden');
 
-    const bloc = document.getElementById('blocCreneaux');
-    const grille = document.getElementById('grilleCrenaux');
-    const alerte = document.getElementById('alertNonTravail');
+    if (calendar) { calendar.destroy(); calendar = null; }
 
-    grille.innerHTML = '<p class="col-span-5 text-center text-gray-400 text-xs py-4"><i class="fas fa-spinner fa-spin mr-2"></i>Chargement...</p>';
-    bloc.classList.remove('hidden');
-    alerte.classList.add('hidden');
+    if (!medecinId) {
+        container.innerHTML = '<p class="text-xs text-gray-400 italic text-center"><i class="fas fa-calendar-alt mr-1"></i> Sélectionnez un médecin pour voir son planning.</p>';
+        return;
+    }
 
-    fetch(`/api/rendezvous/creneaux?medecin_id=${medecinId}&date=${date}`, {
+    container.innerHTML = '<p class="text-xs text-gray-400 italic text-center"><i class="fas fa-spinner fa-spin mr-1"></i> Chargement du planning...</p>';
+
+    // On utilise la même API que le planning admin
+    fetch(`/api/medecin/${medecinId}/planning`, {
         headers: { 'Accept': 'application/json' }
     })
     .then(r => r.json())
     .then(data => {
-        if (!data.travaille) {
-            alerte.classList.remove('hidden');
-        }
+        joursDispos = {};
+        joursComplets = {};
+        (data.dispos || []).forEach(d => joursDispos[d] = true);
 
-        grille.innerHTML = data.creneaux.map(c => {
-            if (c.disponible) {
-                return `<button type="button" onclick="selectCreneau(this, '${c.heure}')"
-                    class="creneau py-3 rounded-xl text-xs font-black bg-green-50 text-green-600 border-2 border-green-200 hover:bg-green-500 hover:text-white hover:border-green-500 transition-all">
-                    ${c.heure}
-                </button>`;
-            } else {
-                return `<div class="py-3 rounded-xl text-xs font-bold bg-red-50 text-red-300 border border-red-100 text-center line-through">
-                    ${c.heure}
-                </div>`;
-            }
-        }).join('');
+        const rdvParDate = data.rdv_par_date || {};
+        Object.entries(rdvParDate).forEach(([date, count]) => {
+            if (count >= 15) joursComplets[date] = true;
+        });
+
+        container.innerHTML = `
+            <div class="flex items-center gap-4 mb-4">
+                <div class="flex items-center gap-2">
+                    <div class="w-4 h-4 bg-green-200 border-2 border-green-400 rounded"></div>
+                    <span class="text-[9px] font-black text-gray-400 uppercase">Disponible</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <div class="w-4 h-4 bg-red-100 border-2 border-red-200 rounded"></div>
+                    <span class="text-[9px] font-black text-gray-400 uppercase">Complet</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <div class="w-4 h-4 bg-cyan-400 rounded"></div>
+                    <span class="text-[9px] font-black text-gray-400 uppercase">Sélectionné</span>
+                </div>
+                <span class="text-[9px] font-bold text-blue-900 ml-auto">${data.medecin}</span>
+            </div>
+            <div id="fullcalendar"></div>
+        `;
+
+        setTimeout(() => {
+            const el = document.getElementById('fullcalendar');
+            calendar = new FullCalendar.Calendar(el, {
+                initialView: 'dayGridMonth',
+                locale: 'fr',
+                height: 'auto',
+                headerToolbar: { left: 'prev', center: 'title', right: 'next' },
+                dateClick: function(info) {
+                    const dateStr = info.dateStr;
+                    if (joursDispos[dateStr] && !joursComplets[dateStr]) {
+                        selectDate(dateStr);
+                    }
+                },
+                dayCellDidMount: function(info) {
+                    const dateStr = info.date.toISOString().split('T')[0];
+                    if (joursDispos[dateStr]) {
+                        if (joursComplets[dateStr]) {
+                            info.el.classList.add('jour-complet');
+                        } else {
+                            info.el.classList.add('jour-dispo');
+                        }
+                    }
+                    if (dateStr === selectedDate) {
+                        info.el.classList.add('jour-selectionne');
+                    }
+                }
+            });
+            calendar.render();
+        }, 50);
+    })
+    .catch(() => {
+        container.innerHTML = '<p class="text-xs text-red-400 font-bold text-center">Erreur de chargement du planning.</p>';
     });
 }
 
-function selectCreneau(btn, heure) {
-    document.querySelectorAll('.creneau').forEach(b => {
-        b.classList.remove('bg-blue-900', 'text-white', 'border-blue-900');
-        b.classList.add('bg-green-50', 'text-green-600', 'border-green-200');
+function selectDate(dateStr) {
+    selectedDate = dateStr;
+    document.getElementById('input_date').value = dateStr;
+    document.getElementById('btnSubmit').disabled = false;
+
+    const d = new Date(dateStr + 'T00:00:00');
+    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    document.getElementById('date_label').textContent = d.toLocaleDateString('fr-FR', options);
+    document.getElementById('date_selectionnee').classList.remove('hidden');
+
+    document.querySelectorAll('#fullcalendar .fc-daygrid-day').forEach(cell => {
+        cell.classList.remove('jour-selectionne');
+        if (cell.dataset.date === dateStr) {
+            cell.classList.add('jour-selectionne');
+        }
     });
-
-    btn.classList.remove('bg-green-50', 'text-green-600', 'border-green-200');
-    btn.classList.add('bg-blue-900', 'text-white', 'border-blue-900');
-
-    document.getElementById('input_heure').value = heure;
-    document.getElementById('heureDisplay').textContent = heure;
-    document.getElementById('heureDisplay').classList.remove('text-gray-400');
-    document.getElementById('heureDisplay').classList.add('text-blue-900');
 }
 </script>
 @endsection

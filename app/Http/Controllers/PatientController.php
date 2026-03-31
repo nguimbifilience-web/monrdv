@@ -3,10 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\Patient;
+use App\Models\User;
 use App\Models\Medecin;
 use App\Models\Assurance;
 use App\Models\ActivityLog;
+use App\Models\PatientValidationCode;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 
 class PatientController extends Controller
 {
@@ -37,22 +40,92 @@ class PatientController extends Controller
         return view('patients.create', compact('medecins', 'assurances'));
     }
 
+    public function sendCode(Request $request)
+    {
+        $request->validate([
+            'nom' => 'required|string|max:255',
+            'prenom' => 'required|string|max:255',
+            'telephone' => 'required',
+            'email' => 'nullable|email',
+        ]);
+
+        $code = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+
+        // Invalider les anciens codes non utilisés du même utilisateur
+        PatientValidationCode::where('requested_by', auth()->id())
+            ->where('used', false)
+            ->update(['used' => true]);
+
+        // Créer le nouveau code en base
+        PatientValidationCode::create([
+            'code' => $code,
+            'patient_nom' => $request->nom,
+            'patient_prenom' => $request->prenom,
+            'requested_by' => auth()->id(),
+            'expires_at' => now()->addMinutes(10),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'code' => $code,
+            'message' => 'Code de validation généré.',
+        ]);
+    }
+
     public function store(Request $request)
     {
         $request->validate([
             'nom' => 'required|string|max:255',
             'prenom' => 'required|string|max:255',
             'telephone' => 'required',
+            'email' => 'nullable|email',
             'est_assure' => 'required|boolean',
             'assurance_id' => 'nullable|exists:assurances,id',
             'medecin_id' => 'nullable|exists:medecins,id',
+            'validation_code' => 'required|string|size:6',
         ]);
 
-        $patient = Patient::create($request->all());
+        // Vérifier le code de validation en base
+        $validCode = PatientValidationCode::where('code', $request->validation_code)
+            ->where('used', false)
+            ->where('expires_at', '>', now())
+            ->first();
+
+        if (!$validCode) {
+            return back()->withInput()->withErrors(['validation_code' => 'Code de validation invalide ou expiré.']);
+        }
+
+        // Marquer le code comme utilisé
+        $validCode->update(['used' => true]);
+
+        // Créer le compte utilisateur si un email est fourni
+        $userId = null;
+        if ($request->filled('email')) {
+            $password = strtolower(substr($request->nom, 0, 3)) . rand(1000, 9999);
+            $user = User::create([
+                'name' => $request->prenom . ' ' . $request->nom,
+                'email' => $request->email,
+                'password' => Hash::make($password),
+                'plain_password' => $password,
+                'role' => 'patient',
+                'email_verified_at' => now(),
+            ]);
+            $userId = $user->id;
+        }
+
+        $patient = Patient::create(array_merge(
+            $request->except(['validation_code']),
+            ['user_id' => $userId]
+        ));
+
         ActivityLog::log('creation', "Patient créé : {$patient->nom} {$patient->prenom}", $patient);
 
-        return redirect()->route('patients.index')
-                         ->with('success', 'Le patient a été enregistré avec succès.');
+        $message = 'Le patient a été enregistré avec succès.';
+        if (isset($password)) {
+            $message .= " Identifiants : {$request->email} / {$password}";
+        }
+
+        return redirect()->route('patients.index')->with('success', $message);
     }
 
     public function show(Patient $patient)

@@ -7,13 +7,6 @@
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <script type="module" src="https://cdn.jsdelivr.net/npm/@hotwired/turbo@8.0.4/dist/turbo.es2017-esm.js"></script>
-    <style>
-        .turbo-progress-bar {
-            height: 3px;
-            background: linear-gradient(to right, #f97316, #22d3ee);
-        }
-    </style>
 </head>
 <body class="bg-[#f8fafc] flex h-screen overflow-hidden font-sans">
 
@@ -39,7 +32,7 @@
             <span class="text-[10px] font-black text-blue-900/40 uppercase tracking-widest">{{ $roleLabel }} MonRDV</span>
         </header>
 
-        <main class="flex-1 overflow-y-auto p-8" id="main-content" data-turbo-temporary>
+        <main class="flex-1 overflow-y-auto p-8" id="main-content">
             @yield('content')
         </main>
     </div>
@@ -50,15 +43,9 @@
             if(modal) modal.classList.toggle('hidden');
         }
 
-        // Recharger FullCalendar et scripts après navigation Turbo
-        document.addEventListener('turbo:load', function() {
-            // Flash messages auto-remove
-            const flash = document.getElementById('flash-msg');
-            if (flash) setTimeout(() => flash.remove(), 3000);
-        });
-
-        // Garder le cache Turbo frais
-        Turbo.setProgressBarDelay(100);
+        // Flash messages auto-remove
+        const flash = document.getElementById('flash-msg');
+        if (flash) setTimeout(() => flash.remove(), 3000);
     </script>
     @stack('scripts')
 </body>

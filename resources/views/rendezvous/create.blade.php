@@ -98,6 +98,7 @@
     </div>
 </div>
 
+@push('scripts')
 <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales/fr.js"></script>
@@ -286,4 +287,5 @@ function selectDate(dateStr) {
     });
 }
 </script>
+@endpush
 @endsection

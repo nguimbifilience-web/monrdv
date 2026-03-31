@@ -29,6 +29,7 @@ Route::middleware(['auth', 'role:admin,secretaire'])->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     // Gestion des Patients
+    Route::post('patients/send-code', [PatientController::class, 'sendCode'])->name('patients.send-code');
     Route::resource('patients', PatientController::class);
     Route::patch('patients/{patient}/notes', [PatientController::class, 'updateNotes'])->name('patients.update-notes');
 

@@ -58,10 +58,8 @@
     </div>
 </div>
 
+@push('scripts')
 <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales/fr.js"></script>
-
 <style>
     #fullcalendar .fc-daygrid-day.jour-travail {
         background-color: #dcfce7 !important;
@@ -76,7 +74,8 @@
         background-color: #bbf7d0 !important;
     }
 </style>
-
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales/fr.js"></script>
 <script>
     let calendar = null;
     let currentMedecinId = null;
@@ -91,20 +90,21 @@
         @endforeach
     };
 
-    function toggleModal(id) { document.getElementById(id).classList.toggle('hidden'); }
-
     function ouvrirCalendrier(medecinId, nom, specialite) {
+        if (typeof FullCalendar === 'undefined') {
+            setTimeout(() => ouvrirCalendrier(medecinId, nom, specialite), 50);
+            return;
+        }
+
         currentMedecinId = medecinId;
         document.getElementById('cal_medecin_nom').textContent = 'Dr. ' + nom;
         document.getElementById('cal_medecin_spec').textContent = specialite;
 
-        // Charger les jours
         joursActifs = {};
         (dispoData[medecinId]?.dates || []).forEach(d => joursActifs[d] = true);
 
-        toggleModal('modalCalendrier');
+        document.getElementById('modalCalendrier').classList.remove('hidden');
 
-        // Détruire l'ancien calendrier
         if (calendar) { calendar.destroy(); calendar = null; }
 
         setTimeout(function() {
@@ -129,7 +129,7 @@
     }
 
     function fermerCalendrier() {
-        toggleModal('modalCalendrier');
+        document.getElementById('modalCalendrier').classList.add('hidden');
         if (calendar) { calendar.destroy(); calendar = null; }
     }
 
@@ -144,7 +144,6 @@
         })
         .then(r => r.json())
         .then(data => {
-            // Trouver la cellule du jour
             const cells = document.querySelectorAll('#fullcalendar .fc-daygrid-day');
             cells.forEach(cell => {
                 if (cell.dataset.date === dateStr) {
@@ -158,7 +157,6 @@
                 }
             });
 
-            // Mettre à jour le compteur et les données
             const count = Object.keys(joursActifs).length;
             const badge = document.getElementById('badge-' + currentMedecinId);
             if (badge) badge.textContent = count + ' jours';
@@ -167,4 +165,5 @@
         });
     }
 </script>
+@endpush
 @endsection

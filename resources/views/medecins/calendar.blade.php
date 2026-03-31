@@ -29,10 +29,9 @@
     </div>
 </div>
 
-<!-- Styles et Scripts Externes -->
+@push('scripts')
 <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css" rel="stylesheet">
 <style>
-    /* Personnalisation du calendrier */
     .fc-daygrid-day { cursor: pointer; }
     .fc-daygrid-day:hover { background-color: #f8f9fa; }
     .fc-toolbar-title { font-weight: bold !important; color: #0d1e3a; text-transform: capitalize; }
@@ -44,7 +43,11 @@
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
+(function initCalendar() {
+    if (typeof FullCalendar === 'undefined' || typeof axios === 'undefined') {
+        setTimeout(initCalendar, 50);
+        return;
+    }
     // 1. Configuration de la sécurité Axios (Token CSRF)
     const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
     if (token) {
@@ -130,6 +133,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     calendar.render();
-});
+})();
 </script>
+@endpush
 @endsection

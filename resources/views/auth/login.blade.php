@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MonRDV - Connexion</title>
     <style>{!! file_get_contents(public_path('css/app.css')) !!}</style>
-    <script type="module" src="https://cdn.jsdelivr.net/npm/@hotwired/turbo@8.0.4/dist/turbo.es2017-esm.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         .watermark {
@@ -195,8 +194,7 @@
                 </button>
 
                 <p class="text-center text-xs text-gray-400 font-bold mt-4">
-                    Vous etes patient ?
-                    <a href="{{ route('register') }}" class="text-cyan-500 hover:text-cyan-600 transition-colors">Creer un compte</a>
+                    Vous êtes patient ? Contactez le secrétariat pour créer votre compte.
                 </p>
             </form>
         </div>

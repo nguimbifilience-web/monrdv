@@ -103,6 +103,44 @@
 
     </nav>
 
+    {{-- Codes de validation en attente --}}
+    @php
+        $pendingCodes = \App\Models\PatientValidationCode::with('requestedBy')
+            ->pending()
+            ->latest()
+            ->get();
+    @endphp
+    @if($pendingCodes->count() > 0)
+    <div class="px-4 pb-3">
+        <div class="bg-orange-500/20 border border-orange-500/30 rounded-2xl p-4">
+            <div class="flex items-center gap-2 mb-3">
+                <div class="w-6 h-6 bg-orange-500 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-key text-white text-[10px]"></i>
+                </div>
+                <span class="text-orange-300 text-[10px] font-black uppercase tracking-widest">Codes en attente</span>
+                <span class="ml-auto bg-orange-500 text-white text-[9px] font-black rounded-full w-5 h-5 flex items-center justify-center">{{ $pendingCodes->count() }}</span>
+            </div>
+            @foreach($pendingCodes as $pc)
+            <div class="bg-white/10 rounded-xl p-3 mb-2 last:mb-0">
+                <p class="text-white text-[10px] font-bold">
+                    <i class="fas fa-user-plus mr-1 text-orange-400"></i>
+                    {{ $pc->patient_prenom }} {{ $pc->patient_nom }}
+                </p>
+                <div class="flex items-center justify-between mt-2">
+                    <span class="text-orange-300 text-lg font-black tracking-[0.3em] font-mono">{{ $pc->code }}</span>
+                    <span class="text-blue-400 text-[9px]">
+                        <i class="fas fa-clock mr-1"></i>{{ $pc->expires_at->diffForHumans() }}
+                    </span>
+                </div>
+                <p class="text-blue-400 text-[9px] mt-1">
+                    Par : {{ $pc->requestedBy->name }}
+                </p>
+            </div>
+            @endforeach
+        </div>
+    </div>
+    @endif
+
     <div class="p-8 border-t border-white/10">
         <div class="flex items-center justify-between">
             <div class="flex items-center gap-3">

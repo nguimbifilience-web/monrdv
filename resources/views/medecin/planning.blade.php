@@ -32,10 +32,8 @@
     </div>
 </div>
 
+@push('scripts')
 <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales/fr.js"></script>
-
 <style>
     #fullcalendar .fc-daygrid-day.jour-travail {
         background-color: #dcfce7 !important;
@@ -57,16 +55,21 @@
         display: inline-block;
     }
 </style>
-
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales/fr.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function() {
+(function initCalendar() {
+    if (typeof FullCalendar === 'undefined') {
+        setTimeout(initCalendar, 50);
+        return;
+    }
+
     const dispos = @json($dispos);
     const rdvParDate = @json($rdvParDate);
 
     const joursDispos = {};
     dispos.forEach(d => joursDispos[d] = true);
 
-    // Creer les events pour les jours avec RDV
     const events = [];
     Object.entries(rdvParDate).forEach(([date, count]) => {
         events.push({
@@ -82,6 +85,8 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     const el = document.getElementById('fullcalendar');
+    if (!el) return;
+
     const calendar = new FullCalendar.Calendar(el, {
         initialView: 'dayGridMonth',
         locale: 'fr',
@@ -103,6 +108,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     calendar.render();
-});
+})();
 </script>
+@endpush
 @endsection

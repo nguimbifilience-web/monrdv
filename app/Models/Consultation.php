@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use App\Models\Traits\BelongsToClinic;
 use Illuminate\Database\Eloquent\Model;
 
 class Consultation extends Model
 {
+    use BelongsToClinic;
+
     protected $fillable = [
         'patient_id', 'medecin_id', 'rendez_vous_id',
         'montant_total', 'taux_couverture',

@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use App\Models\Traits\BelongsToClinic;
 use Illuminate\Database\Eloquent\Model;
 
 class ActivityLog extends Model
 {
+    use BelongsToClinic;
+
     protected $fillable = [
         "user_id", "action", "model_type", "model_id",
         "description", "old_values", "new_values", "ip_address",

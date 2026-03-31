@@ -19,7 +19,12 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
             'role' => \App\Http\Middleware\RoleMiddleware::class,
+            'clinic' => \App\Http\Middleware\EnsureUserBelongsToClinic::class,
+            'super_admin' => \App\Http\Middleware\SuperAdminMiddleware::class,
         ]);
+
+        // Appliquer le middleware clinic à toutes les routes web authentifiées
+        $middleware->appendToGroup('web', \App\Http\Middleware\EnsureUserBelongsToClinic::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

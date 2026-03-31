@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Traits\BelongsToClinic;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
 
 class Patient extends Model
 {
+    use BelongsToClinic;
+
     protected $fillable = [
         'nom', 'prenom', 'telephone', 'email', 'quartier',
         'est_assure', 'assurance_id', 'medecin_id',

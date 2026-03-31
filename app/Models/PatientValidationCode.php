@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use App\Models\Traits\BelongsToClinic;
 use Illuminate\Database\Eloquent\Model;
 
 class PatientValidationCode extends Model
 {
+    use BelongsToClinic;
+
     protected $fillable = ['code', 'patient_nom', 'patient_prenom', 'requested_by', 'used', 'expires_at'];
 
     protected function casts(): array

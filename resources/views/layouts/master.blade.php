@@ -10,7 +10,9 @@
 </head>
 <body class="bg-[#f8fafc] flex h-screen overflow-hidden font-sans">
 
-    @if(auth()->user()->isPatient())
+    @if(auth()->user()->isSuperAdmin())
+        @include('layouts.sidebar-superadmin')
+    @elseif(auth()->user()->isPatient())
         @include('layouts.sidebar-patient')
     @elseif(auth()->user()->isMedecin())
         @include('layouts.sidebar-medecin')
@@ -22,14 +24,18 @@
         <header class="h-16 bg-white border-b border-gray-100 flex items-center justify-end px-10 shrink-0">
             @php
                 $roleLabel = match(auth()->user()->role) {
+                    'super_admin' => 'Super Admin',
                     'admin' => 'Admin',
                     'secretaire' => 'Secrétaire',
                     'medecin' => 'Médecin',
                     'patient' => 'Patient',
                     default => 'Utilisateur',
                 };
+                $clinicName = auth()->user()->clinic->name ?? '';
             @endphp
-            <span class="text-[10px] font-black text-blue-900/40 uppercase tracking-widest">{{ $roleLabel }} MonRDV</span>
+            <span class="text-[10px] font-black text-blue-900/40 uppercase tracking-widest">
+                {{ $roleLabel }} {{ $clinicName ? '— ' . $clinicName : 'MonRDV' }}
+            </span>
         </header>
 
         <main class="flex-1 overflow-y-auto p-8" id="main-content">

@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use App\Models\Traits\BelongsToClinic;
 use Illuminate\Database\Eloquent\Model;
 
 class Assurance extends Model
 {
+    use BelongsToClinic;
+
     protected $fillable = [
         'nom',
         'type',

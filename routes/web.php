@@ -10,6 +10,7 @@ use App\Http\Controllers\AssuranceController;
 use App\Http\Controllers\ConsultationController;
 use App\Http\Controllers\PatientPortalController;
 use App\Http\Controllers\MedecinPortalController;
+use App\Http\Controllers\ClinicController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -117,6 +118,15 @@ Route::middleware(['auth', 'role:medecin'])->prefix('espace-medecin')->name('med
     Route::get('/planning', [MedecinPortalController::class, 'planning'])->name('planning');
     Route::get('/mes-rendezvous', [MedecinPortalController::class, 'mesRendezvous'])->name('rendezvous');
     Route::get('/mes-patients', [MedecinPortalController::class, 'mesPatients'])->name('patients');
+});
+
+// ===== Super Admin — Gestion des Cliniques =====
+Route::middleware(['auth', 'super_admin'])->prefix('super-admin')->name('clinics.')->group(function () {
+    Route::get('/cliniques', [ClinicController::class, 'index'])->name('index');
+    Route::post('/cliniques', [ClinicController::class, 'store'])->name('store');
+    Route::put('/cliniques/{clinic}', [ClinicController::class, 'update'])->name('update');
+    Route::patch('/cliniques/{clinic}/toggle', [ClinicController::class, 'toggleActive'])->name('toggle');
+    Route::delete('/cliniques/{clinic}', [ClinicController::class, 'destroy'])->name('destroy');
 });
 
 require __DIR__.'/auth.php';

@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
+use App\Models\Traits\BelongsToClinic;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Medecin extends Model
 {
-    use HasFactory;
+    use HasFactory, BelongsToClinic;
 
     // Autorise l'enregistrement massif de ces colonnes
     protected $fillable = ['nom', 'prenom', 'telephone', 'specialite_id', 'tarif_heure', 'heures_mois', 'user_id'];

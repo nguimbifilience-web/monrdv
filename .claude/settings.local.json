@@ -19,7 +19,9 @@
       "Bash(docker restart:*)",
       "Bash(wsl bash:*)",
       "Bash(docker cp:*)",
-      "Bash(grep -E \"\\\\.\\(php|blade\\\\.php\\)$\")"
+      "Bash(grep -E \"\\\\.\\(php|blade\\\\.php\\)$\")",
+      "Bash(docker compose:*)",
+      "Bash(find /c/MesProjets/monrdv -type f -name *Notification* -o -name *Mail*)"
     ]
   }
 }

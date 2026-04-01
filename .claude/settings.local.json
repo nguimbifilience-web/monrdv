@@ -21,7 +21,25 @@
       "Bash(docker cp:*)",
       "Bash(grep -E \"\\\\.\\(php|blade\\\\.php\\)$\")",
       "Bash(docker compose:*)",
-      "Bash(find /c/MesProjets/monrdv -type f -name *Notification* -o -name *Mail*)"
+      "Bash(find /c/MesProjets/monrdv -type f -name *Notification* -o -name *Mail*)",
+      "Bash(grep -r \"clinic_id\" /c/MesProjets/monrdv/app/Http/Controllers/*.php)",
+      "Bash(grep -r \"hasMany\\\\|belongsTo\\\\|hasManyThrough\" /c/MesProjets/monrdv/app/Models/*.php)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(curl -sI http://localhost/login)",
+      "Bash(curl:*)",
+      "Bash(timeout 30 bash -c 'while [ ! -s \"C:\\\\Users\\\\nguels\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--MesProjets-monrdv\\\\2311a633-359e-49b3-967f-f64ee12e2224\\\\tasks\\\\bgnm3wg1t.output\" ]; do sleep 1; done; cat \"C:\\\\Users\\\\nguels\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--MesProjets-monrdv\\\\2311a633-359e-49b3-967f-f64ee12e2224\\\\tasks\\\\bgnm3wg1t.output\"' 2>&1)",
+      "Bash(netstat -ano)",
+      "Bash(tasklist /FI \"PID eq 13804\" /FO TABLE)",
+      "Bash(tasklist /FI \"PID eq 15972\" /FO TABLE)",
+      "Bash(tasklist //FI \"PID eq 13804\" //FO TABLE)",
+      "Bash(tasklist //FI \"PID eq 15972\" //FO TABLE)",
+      "Bash(powershell -Command \"Test-NetConnection -ComputerName 127.0.0.1 -Port 8080\" 2>&1)",
+      "Bash(powershell -Command \"Get-ItemProperty 'HKCU:\\\\Software\\\\Microsoft\\\\Windows\\\\CurrentVersion\\\\Internet Settings' | Select-Object ProxyEnable, ProxyServer, ProxyOverride\" 2>&1)",
+      "Bash(powershell -Command \"Invoke-WebRequest -Uri 'http://localhost/login' -UseBasicParsing -TimeoutSec 10 | Select-Object StatusCode, StatusDescription, Content | Format-List\" 2>&1)",
+      "Bash(find:*)",
+      "Bash(python3 -c ' import re with open\\('\\\\''__TRACKED_VAR__'\\\\'', '\\\\''r'\\\\'', encoding='\\\\''utf-8'\\\\'', errors='\\\\''ignore'\\\\''\\) as f: lines = f.readlines\\(\\) for i, line in enumerate\\(lines, 1\\): open_brackets = line.count\\('\\\\''['\\\\''\\) close_brackets = line.count\\('\\\\'']'\\\\''\\) open_parens = line.count\\('\\\\''\\('\\\\''\\) close_parens = line.count\\('\\\\''\\)'\\\\''\\) if open_brackets != close_brackets or open_parens != close_parens: print\\(f'\\\\''__TRACKED_VAR__:{i}: [ {open_brackets} ] {close_brackets} \\( {open_parens} \\) {close_parens}'\\\\''\\) ')",
+      "Bash(grep -l \"users\\\\|Activity\\\\|Clinic\" /c/MesProjets/monrdv/database/migrations/*.php)"
     ]
   }
 }

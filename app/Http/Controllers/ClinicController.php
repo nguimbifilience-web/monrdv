@@ -93,6 +93,8 @@ class ClinicController extends Controller
             'email' => 'nullable|email',
             'phone' => 'nullable|string|max:20',
             'address' => 'nullable|string|max:255',
+            'admin_name' => 'nullable|string|max:255',
+            'admin_email' => 'nullable|required_with:admin_name|email|unique:users,email',
         ]);
 
         $clinic = Clinic::create([
@@ -103,7 +105,24 @@ class ClinicController extends Controller
             'address' => $request->address,
         ]);
 
-        return redirect()->route('clinics.index')->with('success', "Clinique « {$clinic->name} » créée.");
+        $message = "Clinique « {$clinic->name} » créée.";
+
+        // Créer l'admin de la clinique si renseigné
+        if ($request->filled('admin_name') && $request->filled('admin_email')) {
+            $password = Str::random(8);
+            User::withoutGlobalScopes()->create([
+                'name' => $request->admin_name,
+                'email' => $request->admin_email,
+                'password' => Hash::make($password),
+                'plain_password' => $password,
+                'role' => 'admin',
+                'clinic_id' => $clinic->id,
+                'email_verified_at' => now(),
+            ]);
+            $message .= " Admin : {$request->admin_email} / {$password}";
+        }
+
+        return redirect()->route('clinics.index')->with('success', $message);
     }
 
     public function update(Request $request, Clinic $clinic)

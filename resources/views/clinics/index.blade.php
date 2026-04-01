@@ -149,6 +149,23 @@
                 <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Adresse</label>
                 <input type="text" name="address" class="w-full bg-gray-50 border-2 border-gray-100 rounded-2xl p-4 font-bold text-blue-900 focus:border-blue-500 focus:ring-0" placeholder="Quartier, Ville">
             </div>
+
+            {{-- Admin de la clinique (optionnel) --}}
+            <div class="border-t border-gray-100 pt-4 mt-4">
+                <p class="text-[10px] font-black text-orange-500 uppercase tracking-widest mb-3"><i class="fas fa-user-shield mr-1"></i> Administrateur de la clinique (optionnel)</p>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Nom complet</label>
+                        <input type="text" name="admin_name" class="w-full bg-gray-50 border-2 border-gray-100 rounded-2xl p-4 font-bold text-blue-900 focus:border-blue-500 focus:ring-0" placeholder="Nom Prenom">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Email admin</label>
+                        <input type="email" name="admin_email" class="w-full bg-gray-50 border-2 border-gray-100 rounded-2xl p-4 font-bold text-blue-900 focus:border-blue-500 focus:ring-0" placeholder="admin@clinique.ga">
+                    </div>
+                </div>
+                <p class="text-[10px] text-gray-400 italic mt-2">Le mot de passe sera genere et affiche apres la creation.</p>
+            </div>
+
             <div class="flex gap-4 pt-4">
                 <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-black px-8 py-4 rounded-2xl shadow-lg transition-all uppercase tracking-widest text-xs">
                     <i class="fas fa-check mr-2"></i> Créer

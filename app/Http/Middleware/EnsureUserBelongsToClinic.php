@@ -12,8 +12,9 @@ class EnsureUserBelongsToClinic
     {
         $user = $request->user();
 
+        // Laisser passer les visiteurs non connectés (le middleware auth gère ça)
         if (!$user) {
-            return redirect()->route('login');
+            return $next($request);
         }
 
         // Le super admin peut tout voir

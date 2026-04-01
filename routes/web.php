@@ -127,6 +127,13 @@ Route::middleware(['auth', 'super_admin'])->prefix('super-admin')->name('clinics
     Route::put('/cliniques/{clinic}', [ClinicController::class, 'update'])->name('update');
     Route::patch('/cliniques/{clinic}/toggle', [ClinicController::class, 'toggleActive'])->name('toggle');
     Route::delete('/cliniques/{clinic}', [ClinicController::class, 'destroy'])->name('destroy');
+
+    // Gestion des utilisateurs par clinique
+    Route::get('/cliniques/{clinic}/utilisateurs', [ClinicController::class, 'users'])->name('users');
+    Route::post('/cliniques/{clinic}/utilisateurs', [ClinicController::class, 'storeUser'])->name('users.store');
+    Route::put('/cliniques/{clinic}/utilisateurs/{user}', [ClinicController::class, 'updateUser'])->name('users.update');
+    Route::patch('/cliniques/{clinic}/utilisateurs/{user}/reset', [ClinicController::class, 'resetUserPassword'])->name('users.reset');
+    Route::delete('/cliniques/{clinic}/utilisateurs/{user}', [ClinicController::class, 'destroyUser'])->name('users.destroy');
 });
 
 require __DIR__.'/auth.php';

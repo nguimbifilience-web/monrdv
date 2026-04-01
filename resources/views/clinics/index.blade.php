@@ -93,6 +93,10 @@
                     </td>
                     <td class="p-5 text-center">
                         <div class="flex items-center justify-center gap-2">
+                            <a href="{{ route('clinics.users', $clinic) }}"
+                                class="w-8 h-8 bg-green-50 text-green-500 rounded-lg flex items-center justify-center hover:bg-green-500 hover:text-white transition-all" title="Utilisateurs">
+                                <i class="fas fa-users text-[10px]"></i>
+                            </a>
                             <button onclick="editClinic({{ $clinic->id }}, '{{ addslashes($clinic->name) }}', '{{ $clinic->email }}', '{{ $clinic->phone }}', '{{ addslashes($clinic->address) }}')"
                                 class="w-8 h-8 bg-blue-50 text-blue-500 rounded-lg flex items-center justify-center hover:bg-blue-500 hover:text-white transition-all" title="Modifier">
                                 <i class="fas fa-pen text-[10px]"></i>

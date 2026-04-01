@@ -11,7 +11,8 @@ class CompteController extends Controller
 {
     public function index()
     {
-        $comptes = User::orderByRaw("FIELD(role, 'admin', 'secretaire', 'medecin', 'patient')")
+        $comptes = User::where('role', '!=', 'super_admin')
+            ->orderByRaw("FIELD(role, 'admin', 'secretaire', 'medecin', 'patient')")
             ->orderBy('name')
             ->get();
 

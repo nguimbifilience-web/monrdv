@@ -9,7 +9,9 @@ class AdminMiddleware
 {
     public function handle(Request $request, Closure $next)
     {
-        if (!auth()->check() || !auth()->user()->isAdmin()) {
+        $user = auth()->user();
+
+        if (!$user || (!$user->isAdmin() && !$user->isSuperAdmin())) {
             return redirect()->route('dashboard')->with('error', 'Accès réservé aux administrateurs.');
         }
 

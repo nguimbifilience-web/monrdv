@@ -29,4 +29,34 @@ class Clinic extends Model
     {
         return $this->hasMany(Medecin::class);
     }
+
+    public function rendezvous()
+    {
+        return $this->hasMany(RendezVous::class);
+    }
+
+    public function consultations()
+    {
+        return $this->hasMany(Consultation::class);
+    }
+
+    public function specialites()
+    {
+        return $this->hasMany(Specialite::class);
+    }
+
+    public function assurances()
+    {
+        return $this->hasMany(Assurance::class);
+    }
+
+    public function disponibilites()
+    {
+        return $this->hasMany(Disponibilite::class);
+    }
+
+    public function activityLogs()
+    {
+        return $this->hasMany(ActivityLog::class);
+    }
 }

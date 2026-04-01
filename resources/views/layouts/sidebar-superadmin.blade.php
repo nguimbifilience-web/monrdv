@@ -16,6 +16,12 @@
     </div>
 
     <nav class="flex-1 px-4 space-y-2">
+        <a href="{{ route('dashboard') }}"
+           class="flex items-center gap-4 px-6 py-4 rounded-2xl
+           {{ request()->routeIs('dashboard') ? 'bg-red-500 text-white' : 'text-gray-300 hover:bg-white/10' }} transition-all">
+            <i class="fas fa-chart-line"></i>
+            <span class="font-bold text-sm uppercase tracking-widest text-[10px]">Dashboard</span>
+        </a>
         <a href="{{ route('clinics.index') }}"
            class="flex items-center gap-4 px-6 py-4 rounded-2xl
            {{ request()->routeIs('clinics.*') ? 'bg-red-500 text-white' : 'text-gray-300 hover:bg-white/10' }} transition-all">

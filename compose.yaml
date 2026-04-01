@@ -10,6 +10,7 @@ services:
             - 'host.docker.internal:host-gateway'
         ports:
             - '${APP_PORT:-80}:80'
+            - '8000:8000'
             - '${VITE_PORT:-5173}:${VITE_PORT:-5173}'
         environment:
             WWWUSER: '${WWWUSER}'
@@ -17,7 +18,7 @@ services:
             XDEBUG_MODE: '${SAIL_XDEBUG_MODE:-off}'
             XDEBUG_CONFIG: '${SAIL_XDEBUG_CONFIG:-client_host=host.docker.internal}'
             IGNITION_LOCAL_SITES_PATH: '${PWD}'
-            PHP_OPCACHE_ENABLE: 1
+            PHP_OPCACHE_ENABLE: 0
             PHP_OPCACHE_VALIDATE_TIMESTAMPS: 1
         volumes:
             - '.:/var/www/html'

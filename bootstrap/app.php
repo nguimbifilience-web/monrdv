@@ -24,7 +24,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         // Appliquer le middleware clinic à toutes les routes web authentifiées
-        $middleware->appendToGroup('web', \App\Http\Middleware\EnsureUserBelongsToClinic::class);
+       // $middleware->appendToGroup('web', \App\Http\Middleware\EnsureUserBelongsToClinic::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

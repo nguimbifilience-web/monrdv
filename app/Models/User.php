@@ -2,14 +2,14 @@
 
 namespace App\Models;
 
-use App\Models\Traits\BelongsToClinic;
+use App\Models\Clinic;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable, BelongsToClinic;
+    use HasFactory, Notifiable;
 
     protected $fillable = ['name', 'email', 'password', 'role', 'plain_password', 'clinic_id'];
 
@@ -61,5 +61,10 @@ class User extends Authenticatable
     public function medecin()
     {
         return $this->hasOne(Medecin::class);
+    }
+
+    public function clinic()
+    {
+        return $this->belongsTo(Clinic::class);
     }
 }

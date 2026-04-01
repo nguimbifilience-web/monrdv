@@ -1,0 +1,130 @@
+====================================================================
+DIAGNOSTIC ET CORRECTIONS - MonRDV - 1er avril 2026
+====================================================================
+
+SYMPTOME : Application totalement inaccessible. Toutes les pages
+authentifiees retournaient une reponse vide (0 octets) et le
+serveur PHP crashait avec un SIGSEGV (segmentation fault / core dump).
+
+--------------------------------------------------------------------
+PROBLEME 1 : SIGSEGV - Recursion infinie dans ClinicScope + User
+--------------------------------------------------------------------
+Fichiers concernes :
+  - app/Models/User.php
+  - app/Models/Traits/BelongsToClinic.php
+  - app/Models/Scopes/ClinicScope.php
+
+Cause :
+  Le modele User utilisait le trait BelongsToClinic, qui applique
+  un global scope (ClinicScope) a toutes les requetes Eloquent.
+  Ce scope appelle auth()->user() pour filtrer par clinic_id.
+  Or, auth()->user() declenche lui-meme une requete sur le modele
+  User, ce qui re-applique le ClinicScope, qui appelle auth()->user(),
+  etc. => recursion infinie => depassement de pile => SIGSEGV.
+
+Solution :
+  1. Retirer le trait BelongsToClinic du modele User.
+     Le User n'a pas besoin du scope automatique car il est le point
+     d'entree de l'authentification.
+  2. Ajouter la relation clinic() directement dans User.php :
+       public function clinic() {
+           return $this->belongsTo(Clinic::class);
+       }
+  3. Ajouter une protection anti-recursion dans ClinicScope :
+       private static bool $applying = false;
+     pour eviter que d'autres modeles (Patient, Medecin, etc.)
+     ne declenchent la meme recursion indirectement.
+
+--------------------------------------------------------------------
+PROBLEME 2 : Recursion infinie dans MedecinPortalController
+--------------------------------------------------------------------
+Fichier concerne :
+  - app/Http/Controllers/MedecinPortalController.php
+
+Cause :
+  Lors de la refactorisation, une methode getMedecin() a ete creee
+  pour centraliser la recuperation du medecin connecte avec gestion
+  d'erreur. Cependant, a l'interieur de getMedecin(), l'appel
+  auth()->user()->medecin avait ete remplace par $this->getMedecin()
+  (la methode s'appelait elle-meme) => recursion infinie => SIGSEGV.
+
+Solution :
+  Corriger getMedecin() pour appeler auth()->user()->medecin :
+    private function getMedecin() {
+        $medecin = auth()->user()->medecin;
+        if (!$medecin) {
+            abort(403, 'Aucune fiche medecin associee...');
+        }
+        return $medecin;
+    }
+
+--------------------------------------------------------------------
+PROBLEME 3 : Methode logs() manquante dans DashboardController
+--------------------------------------------------------------------
+Fichier concerne :
+  - app/Http/Controllers/DashboardController.php
+
+Cause :
+  La route activites.index (page Tracabilite) pointait vers
+  DashboardController@logs, mais cette methode n'existait pas.
+  => erreur 500 "Call to undefined method".
+
+Solution :
+  Ajouter la methode publique logs() dans DashboardController
+  avec les requetes vers ActivityLog (filtrage par user, action, date)
+  et le passage des variables $logs et $users a la vue.
+
+--------------------------------------------------------------------
+PROBLEME 4 : Routes super admin mal nommees
+--------------------------------------------------------------------
+Fichier concerne :
+  - routes/web.php
+
+Cause :
+  Le groupe de routes avait le prefixe de nom 'clinics.' et le
+  Route::resource utilisait 'cliniques' comme nom de ressource.
+  Laravel generait donc des noms comme clinics.cliniques.index
+  au lieu de clinics.index attendu par les vues Blade.
+
+Solution :
+  Ajouter ->names([...]) au Route::resource pour forcer les noms
+  corrects (index, store, destroy, etc.) et ->parameters() pour
+  utiliser 'clinic' comme parametre de route :
+    Route::resource('cliniques', ClinicController::class)
+        ->parameters(['cliniques' => 'clinic'])
+        ->names([
+            'index' => 'index',
+            'create' => 'create',
+            'store' => 'store',
+            'show' => 'show',
+            'edit' => 'edit',
+            'update' => 'update',
+            'destroy' => 'destroy',
+        ]);
+
+--------------------------------------------------------------------
+RESULTAT APRES CORRECTIONS
+--------------------------------------------------------------------
+Toutes les pages retournent HTTP 200 pour les 5 roles :
+
+  ADMIN (admin@monrdv.ga) :
+    dashboard, patients, rendezvous, planning-global, consultations,
+    medecins, specialites, assurances, comptes, activites,
+    rendezvous/create, patients/create, medecins/create, profile
+
+  SECRETAIRE (secretaire@monrdv.ga) :
+    dashboard, patients, rendezvous, consultations
+
+  PATIENT (patient@test.com) :
+    espace-patient/dashboard, mes-rendezvous, prendre-rdv, mes-documents
+
+  MEDECIN (sochna@monrdv.com) :
+    espace-medecin/dashboard, planning, mes-rendezvous, mes-patients
+
+  SUPER ADMIN (superadmin@monrdv.ga) :
+    dashboard, super-admin/cliniques, super-admin/cliniques/1/utilisateurs
+
+Redirections de securite operationnelles :
+  - Acces non authentifie => redirection vers /login
+  - Acces a une page non autorisee par le role => redirection vers /login
+  - Plus aucun SIGSEGV dans les logs du serveur

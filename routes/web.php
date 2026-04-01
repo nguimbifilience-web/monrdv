@@ -1,139 +1,133 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\MedecinController;
-use App\Http\Controllers\PatientController;
-use App\Http\Controllers\RendezVousController;
-use App\Http\Controllers\SpecialiteController;
-use App\Http\Controllers\AssuranceController;
-use App\Http\Controllers\ConsultationController;
-use App\Http\Controllers\PatientPortalController;
-use App\Http\Controllers\MedecinPortalController;
-use App\Http\Controllers\ClinicController;
+use App\Http\Controllers\{
+    ProfileController, DashboardController, MedecinController,
+    PatientController, RendezVousController, SpecialiteController,
+    AssuranceController, ConsultationController, PatientPortalController,
+    MedecinPortalController, ClinicController, CompteController
+};
 use Illuminate\Support\Facades\Route;
 
+// --- Routes Publiques ---
 Route::get('/', function () {
     return redirect()->route('login');
 });
 
-Route::get('/dashboard', [DashboardController::class, 'index'])
-    ->middleware(['auth', 'role:admin,secretaire'])
-    ->name('dashboard');
-
-// ===== Routes Staff (Admin + Secrétaire) =====
-Route::middleware(['auth', 'role:admin,secretaire'])->group(function () {
-
-    // Profil utilisateur
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-
-    // Gestion des Patients
-    Route::post('patients/send-code', [PatientController::class, 'sendCode'])->name('patients.send-code');
-    Route::resource('patients', PatientController::class);
-    Route::patch('patients/{patient}/notes', [PatientController::class, 'updateNotes'])->name('patients.update-notes');
-
-    // Gestion des Rendez-vous
-    Route::resource('rendezvous', RendezVousController::class);
-    Route::patch('rendezvous/{id}/annuler', [RendezVousController::class, 'annuler'])->name('rendezvous.annuler');
-    Route::patch('rendezvous/{id}/confirmer', [RendezVousController::class, 'confirmer'])->name('rendezvous.confirmer');
-
-    // Planning
-    Route::get('/planning-global', [MedecinController::class, 'schedule'])->name('medecins.schedule');
-
-    // Consultations
-    Route::get('consultations', [ConsultationController::class, 'index'])->name('consultations.index');
-    Route::post('consultations', [ConsultationController::class, 'store'])->name('consultations.store');
-    Route::get('consultations/recettes-mensuelles', [ConsultationController::class, 'recettesMensuelles'])->name('consultations.recettes-mensuelles');
-    Route::get('consultations/{id}/ticket', [ConsultationController::class, 'ticket'])->name('consultations.ticket');
-
-    // API AJAX Staff
-    Route::get('api/medecins/search', [MedecinController::class, 'ajaxSearch'])->name('api.medecins.search');
-    Route::get('api/patients/search', [PatientController::class, 'ajaxSearch'])->name('api.patients.search');
-    Route::get('api/patients/{id}/info', [ConsultationController::class, 'getPatientInfo'])->name('api.patient.info');
-    Route::get('api/patients/check-email', [PatientController::class, 'checkEmail'])->name('api.patients.check-email');
-});
-
-// ===== API AJAX accessible par tous les connectés =====
-Route::middleware('auth')->group(function () {
-    Route::get('api/rendezvous/creneaux', [RendezVousController::class, 'creneauxDisponibles'])->name('api.rendezvous.creneaux');
-    Route::get('api/medecin/{id}/planning', [PatientPortalController::class, 'getDisponibilitesMedecin'])->name('api.medecin.planning');
-});
-
-// ===== Routes Admin uniquement =====
-Route::middleware(['auth', 'admin'])->group(function () {
-
-    // Gestion des Médecins
-    Route::resource('medecins', MedecinController::class);
-    Route::post('/dispo/toggle', [MedecinController::class, 'toggleDispo'])->name('dispo.toggle');
-
-    // Gestion des Spécialités
-    Route::resource('specialites', SpecialiteController::class)->except(['create', 'show', 'edit']);
-
-    // Gestion des Assurances
-    Route::resource('assurances', AssuranceController::class)->except(['create', 'show', 'edit']);
-
-    // Gestion des comptes
-    Route::get('comptes', [\App\Http\Controllers\CompteController::class, 'index'])->name('comptes.index');
-    Route::put('comptes/{id}', [\App\Http\Controllers\CompteController::class, 'update'])->name('comptes.update');
-    Route::patch('comptes/{id}/reset-password', [\App\Http\Controllers\CompteController::class, 'resetPassword'])->name('comptes.reset-password');
-    Route::delete('comptes/{id}', [\App\Http\Controllers\CompteController::class, 'destroy'])->name('comptes.destroy');
-
-    // Traçabilité
-    Route::get('activites', function (Illuminate\Http\Request $request) {
-        $query = \App\Models\ActivityLog::with('user')->latest();
-
-        if ($request->filled('user_id')) $query->where('user_id', $request->user_id);
-        if ($request->filled('action')) $query->where('action', $request->action);
-        if ($request->filled('date')) $query->whereDate('created_at', $request->date);
-
-        $logs = $query->paginate(20)->withQueryString();
-        $users = \App\Models\User::orderBy('name')->get();
-
-        return view('activites.index', compact('logs', 'users'));
-    })->name('activites.index');
-});
-
-// ===== Portail Patient =====
-Route::middleware(['auth', 'role:patient'])->prefix('espace-patient')->name('patient.')->group(function () {
-    Route::get('/dashboard', [PatientPortalController::class, 'dashboard'])->name('dashboard');
-    Route::get('/mes-rendezvous', [PatientPortalController::class, 'mesRendezvous'])->name('rendezvous');
-    Route::get('/prendre-rdv', [PatientPortalController::class, 'prendreRendezvous'])->name('prendre-rdv');
-    Route::post('/prendre-rdv', [PatientPortalController::class, 'storeRendezvous'])->name('store-rdv');
-    Route::patch('/rendezvous/{id}/annuler', [PatientPortalController::class, 'annulerRendezvous'])->name('annuler-rdv');
-
-    // Documents
-    Route::get('/mes-documents', [PatientPortalController::class, 'mesDocuments'])->name('documents');
-    Route::post('/mes-documents', [PatientPortalController::class, 'uploadDocument'])->name('documents.upload');
-    Route::delete('/mes-documents/{id}', [PatientPortalController::class, 'supprimerDocument'])->name('documents.supprimer');
-
-    // API planning médecin
-    Route::get('/api/medecin/{id}/disponibilites', [PatientPortalController::class, 'getDisponibilitesMedecin'])->name('api.medecin.dispos');
-});
-
-// ===== Portail Médecin =====
-Route::middleware(['auth', 'role:medecin'])->prefix('espace-medecin')->name('medecin.')->group(function () {
-    Route::get('/dashboard', [MedecinPortalController::class, 'dashboard'])->name('dashboard');
-    Route::get('/planning', [MedecinPortalController::class, 'planning'])->name('planning');
-    Route::get('/mes-rendezvous', [MedecinPortalController::class, 'mesRendezvous'])->name('rendezvous');
-    Route::get('/mes-patients', [MedecinPortalController::class, 'mesPatients'])->name('patients');
-});
-
-// ===== Super Admin — Gestion des Cliniques =====
-Route::middleware(['auth', 'super_admin'])->prefix('super-admin')->name('clinics.')->group(function () {
-    Route::get('/cliniques', [ClinicController::class, 'index'])->name('index');
-    Route::post('/cliniques', [ClinicController::class, 'store'])->name('store');
-    Route::put('/cliniques/{clinic}', [ClinicController::class, 'update'])->name('update');
-    Route::patch('/cliniques/{clinic}/toggle', [ClinicController::class, 'toggleActive'])->name('toggle');
-    Route::delete('/cliniques/{clinic}', [ClinicController::class, 'destroy'])->name('destroy');
-
-    // Gestion des utilisateurs par clinique
-    Route::get('/cliniques/{clinic}/utilisateurs', [ClinicController::class, 'users'])->name('users');
-    Route::post('/cliniques/{clinic}/utilisateurs', [ClinicController::class, 'storeUser'])->name('users.store');
-    Route::put('/cliniques/{clinic}/utilisateurs/{user}', [ClinicController::class, 'updateUser'])->name('users.update');
-    Route::patch('/cliniques/{clinic}/utilisateurs/{user}/reset', [ClinicController::class, 'resetUserPassword'])->name('users.reset');
-    Route::delete('/cliniques/{clinic}/utilisateurs/{user}', [ClinicController::class, 'destroyUser'])->name('users.destroy');
-});
-
+// --- Authentification (Breeze/Fortify) ---
 require __DIR__.'/auth.php';
+
+// =========================================================
+// TOUTES LES ROUTES NÉCESSITANT AUTHENTIFICATION + CLINIQUE
+// =========================================================
+Route::middleware(['auth', 'clinic'])->group(function () {
+
+    // 1. API AJAX Partagées
+    Route::prefix('api')->name('api.')->group(function () {
+        Route::get('rendezvous/creneaux', [RendezVousController::class, 'creneauxDisponibles'])->name('rendezvous.creneaux');
+        Route::get('medecin/{id}/planning', [PatientPortalController::class, 'getDisponibilitesMedecin'])->name('medecin.planning');
+    });
+
+    // 2. Espace STAFF (Admin & Secrétaire)
+    Route::middleware(['role:admin,secretaire'])->group(function () {
+        Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+        // Profil
+        Route::controller(ProfileController::class)->group(function () {
+            Route::get('/profile', 'edit')->name('profile.edit');
+            Route::patch('/profile', 'update')->name('profile.update');
+            Route::delete('/profile', 'destroy')->name('profile.destroy');
+        });
+
+        // Patients & Rendez-vous
+        Route::post('patients/send-code', [PatientController::class, 'sendCode'])->name('patients.send-code');
+        Route::resource('patients', PatientController::class);
+        Route::patch('patients/{patient}/notes', [PatientController::class, 'updateNotes'])->name('patients.update-notes');
+        
+        Route::resource('rendezvous', RendezVousController::class);
+        Route::patch('rendezvous/{id}/annuler', [RendezVousController::class, 'annuler'])->name('rendezvous.annuler');
+        Route::patch('rendezvous/{id}/confirmer', [RendezVousController::class, 'confirmer'])->name('rendezvous.confirmer');
+
+        Route::get('/planning-global', [MedecinController::class, 'schedule'])->name('medecins.schedule');
+
+        // Consultations
+        Route::controller(ConsultationController::class)->group(function () {
+            Route::get('consultations', 'index')->name('consultations.index');
+            Route::post('consultations', 'store')->name('consultations.store');
+            Route::get('consultations/recettes-mensuelles', 'recettesMensuelles')->name('consultations.recettes-mensuelles');
+            Route::get('consultations/{id}/ticket', 'ticket')->name('consultations.ticket');
+            Route::get('api/patients/{id}/info', 'getPatientInfo')->name('api.patient.info');
+        });
+
+        // API Staff
+        Route::get('api/medecins/search', [MedecinController::class, 'ajaxSearch'])->name('api.medecins.search');
+        Route::get('api/patients/search', [PatientController::class, 'ajaxSearch'])->name('api.patients.search');
+        Route::get('api/patients/check-email', [PatientController::class, 'checkEmail'])->name('api.patients.check-email');
+    });
+
+    // 3. Espace ADMIN Uniquement
+    Route::middleware(['admin'])->group(function () {
+        Route::resource('medecins', MedecinController::class);
+        Route::post('/dispo/toggle', [MedecinController::class, 'toggleDispo'])->name('dispo.toggle');
+        
+        Route::resource('specialites', SpecialiteController::class)->except(['create', 'show', 'edit']);
+        Route::resource('assurances', AssuranceController::class)->except(['create', 'show', 'edit']);
+
+        // Gestion Comptes
+        Route::controller(CompteController::class)->group(function () {
+            Route::get('comptes', 'index')->name('comptes.index');
+            Route::put('comptes/{id}', 'update')->name('comptes.update');
+            Route::patch('comptes/{id}/reset-password', 'resetPassword')->name('comptes.reset-password');
+            Route::delete('comptes/{id}', 'destroy')->name('comptes.destroy');
+        });
+
+        Route::get('activites', [DashboardController::class, 'logs'])->name('activites.index'); // Exemple simplifié
+    });
+
+    // 4. Portail PATIENT
+    Route::middleware(['role:patient'])->prefix('espace-patient')->name('patient.')->group(function () {
+        Route::controller(PatientPortalController::class)->group(function () {
+            Route::get('/dashboard', 'dashboard')->name('dashboard');
+            Route::get('/mes-rendezvous', 'mesRendezvous')->name('rendezvous');
+            Route::get('/prendre-rdv', 'prendreRendezvous')->name('prendre-rdv');
+            Route::post('/prendre-rdv', 'storeRendezvous')->name('store-rdv');
+            Route::patch('/rendezvous/{id}/annuler', 'annulerRendezvous')->name('annuler-rdv');
+            Route::get('/mes-documents', 'mesDocuments')->name('documents');
+            Route::post('/mes-documents', 'uploadDocument')->name('documents.upload');
+            Route::delete('/mes-documents/{id}', 'supprimerDocument')->name('documents.supprimer');
+            Route::get('/api/medecin/{id}/disponibilites', 'getDisponibilitesMedecin')->name('api.medecin.dispos');
+        });
+    });
+
+    // 5. Portail MÉDECIN
+    Route::middleware(['role:medecin'])->prefix('espace-medecin')->name('medecin.')->group(function () {
+        Route::controller(MedecinPortalController::class)->group(function () {
+            Route::get('/dashboard', 'dashboard')->name('dashboard');
+            Route::get('/planning', 'planning')->name('planning');
+            Route::get('/mes-rendezvous', 'mesRendezvous')->name('rendezvous');
+            Route::get('/mes-patients', 'mesPatients')->name('patients');
+        });
+    });
+
+});
+
+// 6. SUPER ADMIN (Hors middleware 'clinic' car gère toutes les cliniques)
+Route::middleware(['auth', 'super_admin'])->prefix('super-admin')->name('clinics.')->group(function () {
+    Route::resource('cliniques', ClinicController::class)->parameters(['cliniques' => 'clinic'])->names([
+        'index' => 'index',
+        'create' => 'create',
+        'store' => 'store',
+        'show' => 'show',
+        'edit' => 'edit',
+        'update' => 'update',
+        'destroy' => 'destroy',
+    ]);
+    Route::patch('/cliniques/{clinic}/toggle', [ClinicController::class, 'toggleActive'])->name('toggle');
+    
+    Route::prefix('cliniques/{clinic}')->group(function () {
+        Route::get('/utilisateurs', [ClinicController::class, 'users'])->name('users');
+        Route::post('/utilisateurs', [ClinicController::class, 'storeUser'])->name('users.store');
+        Route::put('/utilisateurs/{user}', [ClinicController::class, 'updateUser'])->name('users.update');
+        Route::patch('/utilisateurs/{user}/reset', [ClinicController::class, 'resetUserPassword'])->name('users.reset');
+        Route::delete('/utilisateurs/{user}', [ClinicController::class, 'destroyUser'])->name('users.destroy');
+    });
+});    

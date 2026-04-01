@@ -8,12 +8,24 @@ use Illuminate\Database\Eloquent\Scope;
 
 class ClinicScope implements Scope
 {
+    private static bool $applying = false;
+
     public function apply(Builder $builder, Model $model): void
     {
-        $user = auth()->user();
+        if (self::$applying) {
+            return;
+        }
 
-        if ($user && $user->clinic_id && !$user->isSuperAdmin()) {
-            $builder->where($model->getTable() . '.clinic_id', $user->clinic_id);
+        self::$applying = true;
+
+        try {
+            $user = auth()->user();
+
+            if ($user && $user->clinic_id && !$user->isSuperAdmin()) {
+                $builder->where($model->getTable() . '.clinic_id', $user->clinic_id);
+            }
+        } finally {
+            self::$applying = false;
         }
     }
 }

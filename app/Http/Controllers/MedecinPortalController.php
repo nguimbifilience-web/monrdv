@@ -8,9 +8,18 @@ use Illuminate\Http\Request;
 
 class MedecinPortalController extends Controller
 {
-    public function dashboard()
+    private function getMedecin()
     {
         $medecin = auth()->user()->medecin;
+        if (!$medecin) {
+            abort(403, 'Aucune fiche médecin associée à votre compte. Contactez l\'administrateur.');
+        }
+        return $medecin;
+    }
+
+    public function dashboard()
+    {
+        $medecin = $this->getMedecin();
 
         $rdvsAujourdhui = RendezVous::with('patient')
             ->where('medecin_id', $medecin->id)
@@ -29,7 +38,7 @@ class MedecinPortalController extends Controller
 
     public function planning()
     {
-        $medecin = auth()->user()->medecin;
+        $medecin = $this->getMedecin();
         $medecin->load('disponibilites', 'specialite');
 
         $dispos = $medecin->disponibilites()
@@ -50,7 +59,7 @@ class MedecinPortalController extends Controller
 
     public function mesRendezvous(Request $request)
     {
-        $medecin = auth()->user()->medecin;
+        $medecin = $this->getMedecin();
 
         $query = RendezVous::with('patient.assurance')
             ->where('medecin_id', $medecin->id);
@@ -73,7 +82,7 @@ class MedecinPortalController extends Controller
 
     public function mesPatients()
     {
-        $medecin = auth()->user()->medecin;
+        $medecin = $this->getMedecin();
 
         $patients = Patient::whereHas('rendezvous', function ($q) use ($medecin) {
             $q->where('medecin_id', $medecin->id);

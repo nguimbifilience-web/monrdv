@@ -26,6 +26,26 @@ class DashboardController extends Controller
         return view('dashboard', compact('nbRendezvous', 'nbMedecins', 'nbPatients'));
     }
 
+    public function logs()
+    {
+        $query = \App\Models\ActivityLog::with('user')->latest();
+
+        if (request('user_id')) {
+            $query->where('user_id', request('user_id'));
+        }
+        if (request('action')) {
+            $query->where('action', request('action'));
+        }
+        if (request('date')) {
+            $query->whereDate('created_at', request('date'));
+        }
+
+        $logs = $query->paginate(20)->withQueryString();
+        $users = \App\Models\User::where('clinic_id', auth()->user()->clinic_id)->orderBy('name')->get();
+
+        return view('activites.index', compact('logs', 'users'));
+    }
+
     private function superAdminDashboard()
     {
         $clinics = Clinic::withCount(['users', 'patients', 'medecins', 'rendezvous', 'consultations'])

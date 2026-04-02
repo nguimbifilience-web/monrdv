@@ -21,8 +21,13 @@ class ClinicScope implements Scope
         try {
             $user = auth()->user();
 
-            if ($user && $user->clinic_id && !$user->isSuperAdmin()) {
-                $builder->where($model->getTable() . '.clinic_id', $user->clinic_id);
+            if ($user && !$user->isSuperAdmin()) {
+                if ($user->clinic_id) {
+                    $builder->where($model->getTable() . '.clinic_id', $user->clinic_id);
+                } else {
+                    // User sans clinique ne voit rien (sauf super admin)
+                    $builder->where($model->getTable() . '.clinic_id', 0);
+                }
             }
         } finally {
             self::$applying = false;

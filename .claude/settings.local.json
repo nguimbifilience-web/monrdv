@@ -39,7 +39,17 @@
       "Bash(powershell -Command \"Invoke-WebRequest -Uri 'http://localhost/login' -UseBasicParsing -TimeoutSec 10 | Select-Object StatusCode, StatusDescription, Content | Format-List\" 2>&1)",
       "Bash(find:*)",
       "Bash(python3 -c ' import re with open\\('\\\\''__TRACKED_VAR__'\\\\'', '\\\\''r'\\\\'', encoding='\\\\''utf-8'\\\\'', errors='\\\\''ignore'\\\\''\\) as f: lines = f.readlines\\(\\) for i, line in enumerate\\(lines, 1\\): open_brackets = line.count\\('\\\\''['\\\\''\\) close_brackets = line.count\\('\\\\'']'\\\\''\\) open_parens = line.count\\('\\\\''\\('\\\\''\\) close_parens = line.count\\('\\\\''\\)'\\\\''\\) if open_brackets != close_brackets or open_parens != close_parens: print\\(f'\\\\''__TRACKED_VAR__:{i}: [ {open_brackets} ] {close_brackets} \\( {open_parens} \\) {close_parens}'\\\\''\\) ')",
-      "Bash(grep -l \"users\\\\|Activity\\\\|Clinic\" /c/MesProjets/monrdv/database/migrations/*.php)"
+      "Bash(grep -l \"users\\\\|Activity\\\\|Clinic\" /c/MesProjets/monrdv/database/migrations/*.php)",
+      "Bash(xargs cat:*)",
+      "Bash(grep:*)",
+      "Bash(xargs basename:*)",
+      "Bash(./vendor/bin/sail artisan:*)",
+      "Bash(ipconfig)",
+      "Bash(pip install:*)",
+      "Bash(pip3 --version)",
+      "Bash(python -m pip --version)",
+      "Bash(py --version)",
+      "Bash(npm -v)"
     ]
   }
 }

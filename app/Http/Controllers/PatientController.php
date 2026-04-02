@@ -40,38 +40,6 @@ class PatientController extends Controller
         return view('patients.create', compact('medecins', 'assurances'));
     }
 
-    public function sendCode(Request $request)
-    {
-        $request->validate([
-            'nom' => 'required|string|max:255',
-            'prenom' => 'required|string|max:255',
-            'telephone' => 'required',
-            'email' => 'nullable|email',
-        ]);
-
-        $code = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
-
-        // Invalider les anciens codes non utilisés du même utilisateur
-        PatientValidationCode::where('requested_by', auth()->id())
-            ->where('used', false)
-            ->update(['used' => true]);
-
-        // Créer le nouveau code en base
-        PatientValidationCode::create([
-            'code' => $code,
-            'patient_nom' => $request->nom,
-            'patient_prenom' => $request->prenom,
-            'requested_by' => auth()->id(),
-            'expires_at' => now()->addMinutes(10),
-        ]);
-
-        return response()->json([
-            'success' => true,
-            'code' => $code,
-            'message' => 'Code de validation généré.',
-        ]);
-    }
-
     public function store(Request $request)
     {
         $request->validate([
@@ -82,21 +50,7 @@ class PatientController extends Controller
             'est_assure' => 'required|boolean',
             'assurance_id' => 'nullable|exists:assurances,id',
             'medecin_id' => 'nullable|exists:medecins,id',
-            'validation_code' => 'required|string|size:6',
         ]);
-
-        // Vérifier le code de validation en base
-        $validCode = PatientValidationCode::where('code', $request->validation_code)
-            ->where('used', false)
-            ->where('expires_at', '>', now())
-            ->first();
-
-        if (!$validCode) {
-            return back()->withInput()->withErrors(['validation_code' => 'Code de validation invalide ou expiré.']);
-        }
-
-        // Marquer le code comme utilisé
-        $validCode->update(['used' => true]);
 
         // Créer le compte utilisateur si un email est fourni
         $userId = null;
@@ -106,16 +60,16 @@ class PatientController extends Controller
                 'name' => $request->prenom . ' ' . $request->nom,
                 'email' => $request->email,
                 'password' => Hash::make($password),
-                'plain_password' => $password,
                 'role' => 'patient',
+                'clinic_id' => auth()->user()->clinic_id,
                 'email_verified_at' => now(),
             ]);
             $userId = $user->id;
         }
 
         $patient = Patient::create(array_merge(
-            $request->except(['validation_code']),
-            ['user_id' => $userId]
+            $request->all(),
+            ['user_id' => $userId, 'clinic_id' => auth()->user()->clinic_id]
         ));
 
         ActivityLog::log('creation', "Patient créé : {$patient->nom} {$patient->prenom}", $patient);

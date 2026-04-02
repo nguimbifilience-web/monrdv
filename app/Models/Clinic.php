@@ -3,16 +3,44 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 
 class Clinic extends Model
 {
-    protected $fillable = ['name', 'slug', 'email', 'phone', 'address', 'is_active'];
+    protected $fillable = [
+        'name', 'slug', 'email', 'phone', 'address',
+        'logo_path', 'primary_color', 'secondary_color',
+        'is_active', 'is_blocked', 'blocked_reason', 'blocked_at', 'subscription_expires_at',
+    ];
 
     protected function casts(): array
     {
         return [
             'is_active' => 'boolean',
+            'is_blocked' => 'boolean',
+            'blocked_at' => 'datetime',
+            'subscription_expires_at' => 'date',
         ];
+    }
+
+    public function getLogoUrlAttribute(): ?string
+    {
+        return $this->logo_path ? Storage::url($this->logo_path) : null;
+    }
+
+    public function getPrimaryColorOrDefault(): string
+    {
+        return $this->primary_color ?? '#1e3a8a';
+    }
+
+    public function getSecondaryColorOrDefault(): string
+    {
+        return $this->secondary_color ?? '#f97316';
+    }
+
+    public function isBlocked(): bool
+    {
+        return $this->is_blocked;
     }
 
     public function users()

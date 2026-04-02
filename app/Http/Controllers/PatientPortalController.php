@@ -9,9 +9,18 @@ use Illuminate\Http\Request;
 
 class PatientPortalController extends Controller
 {
-    public function dashboard()
+    private function getPatient()
     {
         $patient = auth()->user()->patient;
+        if (!$patient) {
+            abort(403, 'Aucun profil patient associé à votre compte. Contactez l\'administrateur.');
+        }
+        return $patient;
+    }
+
+    public function dashboard()
+    {
+        $patient = $this->getPatient();
 
         $rdvsAVenir = RendezVous::with('medecin.specialite')
             ->where('patient_id', $patient->id)
@@ -30,7 +39,7 @@ class PatientPortalController extends Controller
 
     public function mesRendezvous()
     {
-        $patient = auth()->user()->patient;
+        $patient = $this->getPatient();
 
         $rendezvous = RendezVous::with('medecin.specialite')
             ->where('patient_id', $patient->id)
@@ -80,7 +89,7 @@ class PatientPortalController extends Controller
 
     public function storeRendezvous(Request $request)
     {
-        $patient = auth()->user()->patient;
+        $patient = $this->getPatient();
 
         $request->validate([
             'medecin_id' => 'required|exists:medecins,id',
@@ -123,7 +132,7 @@ class PatientPortalController extends Controller
 
     public function annulerRendezvous($id)
     {
-        $patient = auth()->user()->patient;
+        $patient = $this->getPatient();
 
         $rdv = RendezVous::where('id', $id)
             ->where('patient_id', $patient->id)
@@ -139,7 +148,7 @@ class PatientPortalController extends Controller
 
     public function mesDocuments()
     {
-        $patient = auth()->user()->patient;
+        $patient = $this->getPatient();
         $documents = DocumentPatient::where('patient_id', $patient->id)->latest()->get();
 
         return view('patient.documents', compact('documents'));
@@ -147,7 +156,7 @@ class PatientPortalController extends Controller
 
     public function uploadDocument(Request $request)
     {
-        $patient = auth()->user()->patient;
+        $patient = $this->getPatient();
 
         $request->validate([
             'nom' => 'required|string|max:255',
@@ -169,7 +178,7 @@ class PatientPortalController extends Controller
 
     public function supprimerDocument($id)
     {
-        $patient = auth()->user()->patient;
+        $patient = $this->getPatient();
 
         $doc = DocumentPatient::where('id', $id)
             ->where('patient_id', $patient->id)

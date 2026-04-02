@@ -13,6 +13,24 @@ Route::get('/', function () {
     return redirect()->route('login');
 });
 
+// Page d'accueil publique par clinique → redirige vers login avec branding
+Route::get('/c/{clinic:slug}', function (\App\Models\Clinic $clinic) {
+    if ($clinic->is_blocked) {
+        return redirect()->route('clinic.blocked', $clinic->slug);
+    }
+    if (!$clinic->is_active) {
+        return redirect()->route('login')->withErrors(['email' => 'Cette clinique est actuellement désactivée.']);
+    }
+    return redirect()->route('login', ['clinic' => $clinic->slug]);
+})->name('clinic.portal');
+
+Route::get('/clinique-suspendue/{clinic:slug}', function (\App\Models\Clinic $clinic) {
+    if (!$clinic->is_blocked) {
+        return redirect('/');
+    }
+    return view('auth.clinic-blocked', compact('clinic'));
+})->name('clinic.blocked');
+
 // --- Authentification (Breeze/Fortify) ---
 require __DIR__.'/auth.php';
 
@@ -27,19 +45,17 @@ Route::middleware(['auth', 'clinic'])->group(function () {
         Route::get('medecin/{id}/planning', [PatientPortalController::class, 'getDisponibilitesMedecin'])->name('medecin.planning');
     });
 
+    // Profil (accessible à tous les rôles authentifiés)
+    Route::controller(ProfileController::class)->group(function () {
+        Route::get('/profile', 'edit')->name('profile.edit');
+        Route::patch('/profile', 'update')->name('profile.update');
+    });
+
     // 2. Espace STAFF (Admin & Secrétaire)
     Route::middleware(['role:admin,secretaire'])->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-        // Profil
-        Route::controller(ProfileController::class)->group(function () {
-            Route::get('/profile', 'edit')->name('profile.edit');
-            Route::patch('/profile', 'update')->name('profile.update');
-            Route::delete('/profile', 'destroy')->name('profile.destroy');
-        });
-
         // Patients & Rendez-vous
-        Route::post('patients/send-code', [PatientController::class, 'sendCode'])->name('patients.send-code');
         Route::resource('patients', PatientController::class);
         Route::patch('patients/{patient}/notes', [PatientController::class, 'updateNotes'])->name('patients.update-notes');
         
@@ -75,6 +91,7 @@ Route::middleware(['auth', 'clinic'])->group(function () {
         // Gestion Comptes
         Route::controller(CompteController::class)->group(function () {
             Route::get('comptes', 'index')->name('comptes.index');
+            Route::post('comptes', 'store')->name('comptes.store');
             Route::put('comptes/{id}', 'update')->name('comptes.update');
             Route::patch('comptes/{id}/reset-password', 'resetPassword')->name('comptes.reset-password');
             Route::delete('comptes/{id}', 'destroy')->name('comptes.destroy');
@@ -122,7 +139,10 @@ Route::middleware(['auth', 'super_admin'])->prefix('super-admin')->name('clinics
         'destroy' => 'destroy',
     ]);
     Route::patch('/cliniques/{clinic}/toggle', [ClinicController::class, 'toggleActive'])->name('toggle');
-    
+    Route::patch('/cliniques/{clinic}/block', [ClinicController::class, 'block'])->name('block');
+    Route::patch('/cliniques/{clinic}/unblock', [ClinicController::class, 'unblock'])->name('unblock');
+    Route::delete('/cliniques/{clinic}/logo', [ClinicController::class, 'removeLogo'])->name('logo.destroy');
+
     Route::prefix('cliniques/{clinic}')->group(function () {
         Route::get('/utilisateurs', [ClinicController::class, 'users'])->name('users');
         Route::post('/utilisateurs', [ClinicController::class, 'storeUser'])->name('users.store');

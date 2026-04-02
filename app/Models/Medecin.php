@@ -11,7 +11,7 @@ class Medecin extends Model
     use HasFactory, BelongsToClinic;
 
     // Autorise l'enregistrement massif de ces colonnes
-    protected $fillable = ['nom', 'prenom', 'telephone', 'specialite_id', 'tarif_heure', 'heures_mois', 'user_id'];
+    protected $fillable = ['clinic_id', 'nom', 'prenom', 'telephone', 'specialite_id', 'tarif_heure', 'heures_mois', 'user_id'];
 
     public function user()
     {

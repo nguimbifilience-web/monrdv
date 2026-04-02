@@ -217,6 +217,9 @@ function filtrerPatients() {
                     </td>
                 </tr>
             `).join('');
+        })
+        .catch(() => {
+            document.getElementById('countPatients').textContent = 'Erreur de chargement';
         });
     }, 300);
 }

@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MonRDV - Inscription Patient</title>
+    <title>{{ ($clinic ?? null)?->name ?? 'MonRDV' }} - Inscription Patient</title>
     <style>{!! file_get_contents(public_path('css/app.css')) !!}</style>
     <script type="module" src="https://cdn.jsdelivr.net/npm/@hotwired/turbo@8.0.4/dist/turbo.es2017-esm.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
-<body class="min-h-screen bg-gradient-to-br from-blue-900 via-blue-800 to-blue-900 flex items-center justify-center p-4 relative overflow-hidden">
+<body class="min-h-screen flex items-center justify-center p-4 relative overflow-hidden"
+    style="background: linear-gradient(135deg, {{ ($clinic ?? null)?->getPrimaryColorOrDefault() ?? '#1e3a8a' }}, {{ ($clinic ?? null)?->getPrimaryColorOrDefault() ?? '#1e3a8a' }}dd, {{ ($clinic ?? null)?->getPrimaryColorOrDefault() ?? '#1e3a8a' }})">
 
     <div class="w-full max-w-4xl flex rounded-[2.5rem] shadow-2xl overflow-hidden relative z-10">
 
@@ -19,12 +20,17 @@
 
             <div>
                 <div class="flex items-center gap-4 mb-2">
-                    <div class="w-14 h-14 bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl flex items-center justify-center shadow-lg shadow-orange-500/30">
-                        <span class="text-white font-black text-lg italic tracking-tighter">LZy</span>
-                    </div>
+                    @if(($clinic ?? null)?->logo_url)
+                        <img src="{{ $clinic->logo_url }}" alt="{{ $clinic->name }}" class="w-14 h-14 rounded-2xl object-cover shadow-lg">
+                    @else
+                        <div class="w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg"
+                            style="background-color: {{ ($clinic ?? null)?->getSecondaryColorOrDefault() ?? '#f97316' }}">
+                            <span class="text-white font-black text-lg italic tracking-tighter">{{ strtoupper(substr(($clinic ?? null)?->name ?? 'MR', 0, 2)) }}</span>
+                        </div>
+                    @endif
                     <div>
                         <h1 class="text-white font-black text-3xl uppercase tracking-tighter italic">
-                            Mon<span class="text-orange-500">RDV</span>
+                            {{ ($clinic ?? null)?->name ?? 'MonRDV' }}
                         </h1>
                         <p class="text-blue-400 text-[10px] uppercase font-bold tracking-widest">Espace Patient</p>
                     </div>
@@ -61,7 +67,7 @@
                 </div>
             </div>
 
-            <p class="text-blue-500 text-[9px] uppercase font-bold tracking-widest">&copy; {{ date('Y') }} MonRDV — LZy</p>
+            <p class="text-blue-500 text-[9px] uppercase font-bold tracking-widest">&copy; {{ date('Y') }} {{ ($clinic ?? null)?->name ?? 'MonRDV' }}</p>
         </div>
 
         {{-- PANNEAU DROIT - FORMULAIRE --}}
@@ -79,6 +85,16 @@
                 <p class="text-xs text-gray-400 font-bold uppercase tracking-widest mt-1">Creez votre compte patient</p>
             </div>
 
+            @if($noClinic ?? false)
+            <div class="mb-4 p-4 bg-yellow-50 border-l-4 border-yellow-500 rounded-xl relative z-10">
+                <div class="flex items-center gap-2">
+                    <i class="fas fa-exclamation-triangle text-yellow-500"></i>
+                    <span class="text-yellow-700 text-xs font-bold">Pour vous inscrire, utilisez le lien d'acces de votre clinique.</span>
+                </div>
+                <p class="text-yellow-600 text-[10px] mt-1">Demandez le lien a votre clinique (ex: {{ url('/c/nom-clinique') }})</p>
+            </div>
+            @endif
+
             @if($errors->any())
             <div class="mb-4 p-4 bg-red-50 border-l-4 border-red-500 rounded-xl relative z-10">
                 @foreach($errors->all() as $error)
@@ -92,6 +108,9 @@
 
             <form method="POST" action="{{ route('register') }}" class="space-y-4 relative z-10">
                 @csrf
+                @if(($clinic ?? null)?->slug)
+                    <input type="hidden" name="clinic_slug" value="{{ $clinic->slug }}">
+                @endif
 
                 <div class="grid grid-cols-2 gap-4">
                     <div>
@@ -149,7 +168,7 @@
 
                 <p class="text-center text-xs text-gray-400 font-bold">
                     Deja inscrit ?
-                    <a href="{{ route('login') }}" class="text-cyan-500 hover:text-cyan-600 transition-colors">Se connecter</a>
+                    <a href="{{ route('login', ($clinic ?? null)?->slug ? ['clinic' => $clinic->slug] : []) }}" class="text-cyan-500 hover:text-cyan-600 transition-colors">Se connecter</a>
                 </p>
             </form>
         </div>

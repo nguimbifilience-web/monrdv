@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MonRDV - Connexion</title>
+    <title>{{ ($clinic ?? null)?->name ?? 'MonRDV' }} - Connexion</title>
     <style>{!! file_get_contents(public_path('css/app.css')) !!}</style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -34,7 +34,8 @@
         }
     </style>
 </head>
-<body class="min-h-screen bg-gradient-to-br from-blue-900 via-blue-800 to-blue-900 flex items-center justify-center p-4 relative overflow-hidden">
+<body class="min-h-screen flex items-center justify-center p-4 relative overflow-hidden"
+    style="background: linear-gradient(135deg, {{ ($clinic ?? null)?->getPrimaryColorOrDefault() ?? '#1e3a8a' }}, {{ ($clinic ?? null)?->getPrimaryColorOrDefault() ?? '#1e3a8a' }}dd, {{ ($clinic ?? null)?->getPrimaryColorOrDefault() ?? '#1e3a8a' }})">
 
     {{-- Filigrane LZy en fond --}}
     <div class="watermark">LZy</div>
@@ -56,14 +57,20 @@
             <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[10rem] font-black italic text-white/[0.03] pointer-events-none select-none rotate-[-20deg]">LZy</div>
 
             <div>
-                {{-- Logo LZy + MonRDV --}}
                 <div class="flex items-center gap-4 mb-2">
-                    <div class="w-14 h-14 bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl flex items-center justify-center shadow-lg shadow-orange-500/30">
-                        <span class="text-white font-black text-lg italic tracking-tighter">LZy</span>
-                    </div>
+                    @if(($clinic ?? null)?->logo_url)
+                        <img src="{{ $clinic->logo_url }}" alt="{{ $clinic->name }}" class="w-14 h-14 rounded-2xl object-cover shadow-lg">
+                    @else
+                        <div class="w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg"
+                            style="background-color: {{ ($clinic ?? null)?->getSecondaryColorOrDefault() ?? '#f97316' }}">
+                            <span class="text-white font-black text-lg italic tracking-tighter">
+                                {{ strtoupper(substr(($clinic ?? null)?->name ?? 'MR', 0, 2)) }}
+                            </span>
+                        </div>
+                    @endif
                     <div>
                         <h1 class="text-white font-black text-3xl uppercase tracking-tighter italic">
-                            Mon<span class="text-orange-500">RDV</span>
+                            {{ ($clinic ?? null)?->name ?? 'MonRDV' }}
                         </h1>
                         <p class="text-blue-400 text-[10px] uppercase font-bold tracking-widest">
                             Gestion Médicale
@@ -103,7 +110,7 @@
             </div>
 
             <p class="text-blue-500 text-[9px] uppercase font-bold tracking-widest">
-                &copy; {{ date('Y') }} MonRDV — LZy
+                &copy; {{ date('Y') }} {{ ($clinic ?? null)?->name ?? 'MonRDV' }}
             </p>
         </div>
 
@@ -114,11 +121,18 @@
 
             {{-- Logo mobile --}}
             <div class="md:hidden text-center mb-8">
-                <div class="w-16 h-16 bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl flex items-center justify-center shadow-lg mx-auto mb-3">
-                    <span class="text-white font-black text-xl italic tracking-tighter">LZy</span>
-                </div>
+                @if(($clinic ?? null)?->logo_url)
+                    <img src="{{ $clinic->logo_url }}" alt="{{ $clinic->name }}" class="w-16 h-16 rounded-2xl object-cover shadow-lg mx-auto mb-3">
+                @else
+                    <div class="w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg mx-auto mb-3"
+                        style="background-color: {{ ($clinic ?? null)?->getSecondaryColorOrDefault() ?? '#f97316' }}">
+                        <span class="text-white font-black text-xl italic tracking-tighter">
+                            {{ strtoupper(substr(($clinic ?? null)?->name ?? 'MR', 0, 2)) }}
+                        </span>
+                    </div>
+                @endif
                 <h1 class="text-blue-900 font-black text-3xl uppercase tracking-tighter italic">
-                    Mon<span class="text-orange-500">RDV</span>
+                    {{ ($clinic ?? null)?->name ?? 'MonRDV' }}
                 </h1>
             </div>
 
@@ -194,7 +208,10 @@
                 </button>
 
                 <p class="text-center text-xs text-gray-400 font-bold mt-4">
-                    Vous êtes patient ? Contactez le secrétariat pour créer votre compte.
+                    Pas encore de compte ?
+                    <a href="{{ route('register', ($clinic ?? null)?->slug ? ['clinic' => $clinic->slug] : []) }}" class="text-cyan-500 hover:text-cyan-600 transition-colors font-black">
+                        S'inscrire
+                    </a>
                 </p>
             </form>
         </div>

@@ -6,6 +6,7 @@ use App\Models\Clinic;
 use App\Models\RendezVous;
 use App\Models\Medecin;
 use App\Models\Patient;
+use App\Models\User;
 use App\Models\Consultation;
 
 class DashboardController extends Controller
@@ -23,7 +24,18 @@ class DashboardController extends Controller
         $nbMedecins = Medecin::count();
         $nbPatients = Patient::count();
 
-        return view('dashboard', compact('nbRendezvous', 'nbMedecins', 'nbPatients'));
+        // Comptes pour la section gestion
+        if ($user->isAdmin()) {
+            // Admin voit tous les comptes de sa clinique
+            $comptes = User::where('role', '!=', 'super_admin')
+                ->orderByRaw("FIELD(role, 'admin', 'secretaire', 'medecin', 'patient')")
+                ->orderBy('name')->get();
+        } else {
+            // Secrétaire voit seulement les patients
+            $comptes = User::where('role', 'patient')->orderBy('name')->get();
+        }
+
+        return view('dashboard', compact('nbRendezvous', 'nbMedecins', 'nbPatients', 'comptes'));
     }
 
     public function logs()
@@ -61,6 +73,15 @@ class DashboardController extends Controller
             'total_rdv_today' => RendezVous::withoutGlobalScopes()->whereDate('date_rv', today())->count(),
         ];
 
-        return view('dashboard-superadmin', compact('clinics', 'stats'));
+        // Tous les comptes groupés par clinique
+        $comptes = User::withoutGlobalScopes()
+            ->where('role', '!=', 'super_admin')
+            ->with('clinic')
+            ->orderBy('clinic_id')
+            ->orderByRaw("FIELD(role, 'admin', 'secretaire', 'medecin', 'patient')")
+            ->orderBy('name')
+            ->get();
+
+        return view('dashboard-superadmin', compact('clinics', 'stats', 'comptes'));
     }
 }

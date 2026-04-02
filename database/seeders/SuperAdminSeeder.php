@@ -29,7 +29,6 @@ class SuperAdminSeeder extends Seeder
             [
                 'name' => 'Super Administrateur',
                 'password' => Hash::make('password'),
-                'plain_password' => 'password',
                 'role' => 'super_admin',
                 'clinic_id' => null,
                 'email_verified_at' => now(),

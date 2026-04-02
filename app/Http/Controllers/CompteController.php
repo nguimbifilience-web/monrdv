@@ -3,12 +3,59 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Patient;
+use App\Models\Medecin;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
 class CompteController extends Controller
 {
+    public function store(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email',
+            'role' => 'required|in:admin,secretaire,medecin,patient',
+        ]);
+
+        $password = Str::random(8);
+        $nameParts = explode(' ', $request->name, 2);
+        $prenom = $nameParts[0];
+        $nom = $nameParts[1] ?? $prenom;
+
+        $user = User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => Hash::make($password),
+            'role' => $request->role,
+            'clinic_id' => auth()->user()->clinic_id,
+            'email_verified_at' => now(),
+        ]);
+
+        // Créer la fiche associée selon le rôle
+        if ($request->role === 'patient') {
+            Patient::create([
+                'nom' => $nom,
+                'prenom' => $prenom,
+                'email' => $request->email,
+                'telephone' => '',
+                'user_id' => $user->id,
+                'clinic_id' => auth()->user()->clinic_id,
+            ]);
+        } elseif ($request->role === 'medecin') {
+            Medecin::create([
+                'nom' => $nom,
+                'prenom' => $prenom,
+                'email' => $request->email,
+                'user_id' => $user->id,
+                'clinic_id' => auth()->user()->clinic_id,
+            ]);
+        }
+
+        return back()->with('success', "Compte créé ! Identifiants : {$request->email} / {$password}");
+    }
+
     public function index()
     {
         $comptes = User::where('role', '!=', 'super_admin')
@@ -21,12 +68,12 @@ class CompteController extends Controller
 
     public function update(Request $request, $id)
     {
-        $user = User::findOrFail($id);
+        $user = User::where('clinic_id', auth()->user()->clinic_id)->findOrFail($id);
 
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $user->id,
-            'password' => 'nullable|string|min:4|confirmed',
+            'password' => 'nullable|string|min:8|confirmed',
         ]);
 
         $data = [
@@ -36,7 +83,6 @@ class CompteController extends Controller
 
         if ($request->filled('password')) {
             $data['password'] = Hash::make($request->password);
-            $data['plain_password'] = $request->password;
         }
 
         $user->update($data);
@@ -44,22 +90,31 @@ class CompteController extends Controller
         return back()->with('success', "Compte de {$user->name} mis à jour.");
     }
 
-    public function resetPassword($id)
+    public function resetPassword(Request $request, $id)
     {
-        $user = User::findOrFail($id);
-        $newPassword = Str::random(8);
+        $user = User::where('clinic_id', auth()->user()->clinic_id)->findOrFail($id);
+
+        if ($request->filled('new_password')) {
+            $request->validate(['new_password' => 'string|min:8']);
+            $newPassword = $request->new_password;
+        } else {
+            $newPassword = Str::random(8);
+        }
 
         $user->update([
             'password' => Hash::make($newPassword),
-            'plain_password' => $newPassword,
         ]);
 
-        return back()->with('success', "Mot de passe de {$user->name} réinitialisé : {$newPassword}");
+        return back()->with('reset_password', json_encode([
+            'name' => $user->name,
+            'email' => $user->email,
+            'password' => $newPassword,
+        ]));
     }
 
     public function destroy($id)
     {
-        $user = User::findOrFail($id);
+        $user = User::where('clinic_id', auth()->user()->clinic_id)->findOrFail($id);
 
         if ($user->id === auth()->id()) {
             return back()->with('error', 'Vous ne pouvez pas supprimer votre propre compte.');

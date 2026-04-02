@@ -162,7 +162,8 @@
             if (badge) badge.textContent = count + ' jours';
             dispoData[currentMedecinId].dates = Object.keys(joursActifs);
             dispoData[currentMedecinId].count = count;
-        });
+        })
+        .catch(() => alert('Erreur lors de la modification de la disponibilité.'));
     }
 </script>
 @endpush

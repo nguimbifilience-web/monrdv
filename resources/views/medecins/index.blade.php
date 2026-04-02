@@ -124,28 +124,34 @@ function filtrerMedecins() {
             }
 
             empty.classList.add('hidden');
-            tbody.innerHTML = data.map(m => `
+            tbody.innerHTML = data.map(m => {
+                const esc = s => {
+                    const d = document.createElement('div');
+                    d.textContent = s ?? '';
+                    return d.innerHTML;
+                };
+                return `
                 <tr class="hover:bg-blue-50/50 transition-colors">
                     <td class="p-5">
                         <div class="flex items-center">
                             <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white mr-4 font-bold shadow-md shadow-blue-100">
                                 <i class="fas fa-user-md"></i>
                             </div>
-                            <span class="font-bold text-gray-700">Dr. ${m.nom.toUpperCase()} ${m.prenom}</span>
+                            <span class="font-bold text-gray-700">Dr. ${esc((m.nom || '').toUpperCase())} ${esc(m.prenom)}</span>
                         </div>
                     </td>
-                    <td class="p-5"><span class="px-3 py-1 bg-indigo-50 text-indigo-600 rounded-lg text-[11px] font-black uppercase">${m.specialite}</span></td>
+                    <td class="p-5"><span class="px-3 py-1 bg-indigo-50 text-indigo-600 rounded-lg text-[11px] font-black uppercase">${esc(m.specialite)}</span></td>
                     <td class="p-5 text-sm text-gray-500 font-medium">
-                        <span class="text-gray-700 flex items-center"><i class="fas fa-envelope mr-2 text-gray-300 text-[10px]"></i>${m.email || 'contact@monrdv.ga'}</span>
-                        <span class="text-[11px] text-blue-500 font-bold mt-1"><i class="fas fa-phone-alt mr-2 text-gray-300 text-[10px]"></i>${m.telephone || ''}</span>
+                        <span class="text-gray-700 flex items-center"><i class="fas fa-envelope mr-2 text-gray-300 text-[10px]"></i>${esc(m.email)}</span>
+                        <span class="text-[11px] text-blue-500 font-bold mt-1"><i class="fas fa-phone-alt mr-2 text-gray-300 text-[10px]"></i>${esc(m.telephone)}</span>
                     </td>
                     <td class="p-5 text-center"><span class="bg-cyan-50 text-cyan-600 px-3 py-1 rounded-lg text-[11px] font-black">${Number(m.tarif_heure).toLocaleString('fr-FR')} F</span></td>
                     <td class="p-5 text-center"><span class="bg-blue-50 text-blue-600 px-3 py-1 rounded-full text-[11px] font-black">${m.heures_mois}h</span></td>
                     <td class="p-5 text-center"><span class="bg-green-50 text-green-700 px-3 py-1 rounded-lg text-xs font-black border border-green-100">${Number(m.montant_total).toLocaleString('fr-FR')} F</span></td>
                     <td class="p-5">
                         <div class="flex justify-center gap-2">
-                            <a href="${m.edit_url}" class="w-9 h-9 flex items-center justify-center bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-600 hover:text-white transition-all shadow-sm"><i class="fas fa-edit"></i></a>
-                            <form action="${m.delete_url}" method="POST" onsubmit="return confirm('Supprimer ?')">
+                            <a href="${esc(m.edit_url)}" class="w-9 h-9 flex items-center justify-center bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-600 hover:text-white transition-all shadow-sm"><i class="fas fa-edit"></i></a>
+                            <form action="${esc(m.delete_url)}" method="POST" onsubmit="return confirm('Supprimer ?')">
                                 <input type="hidden" name="_token" value="${csrf}">
                                 <input type="hidden" name="_method" value="DELETE">
                                 <button type="submit" class="w-9 h-9 flex items-center justify-center bg-red-50 text-red-500 rounded-xl hover:bg-red-500 hover:text-white transition-all shadow-sm border-none cursor-pointer"><i class="fas fa-trash-alt"></i></button>
@@ -153,7 +159,10 @@ function filtrerMedecins() {
                         </div>
                     </td>
                 </tr>
-            `).join('');
+            `}).join('');
+        })
+        .catch(() => {
+            document.getElementById('countResult').textContent = 'Erreur de chargement';
         });
     }, 300);
 }

@@ -11,7 +11,7 @@ class DocumentPatient extends Model
 
     protected $table = 'documents_patient';
 
-    protected $fillable = ['patient_id', 'nom', 'type', 'fichier'];
+    protected $fillable = ['clinic_id', 'patient_id', 'nom', 'type', 'fichier'];
 
     public function patient()
     {

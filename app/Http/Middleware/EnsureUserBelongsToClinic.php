@@ -22,12 +22,28 @@ class EnsureUserBelongsToClinic
             return $next($request);
         }
 
+        // Bloquer les utilisateurs sans clinique
+        if (!$user->clinic_id) {
+            auth()->logout();
+            return redirect()->route('login')->withErrors([
+                'email' => 'Votre compte n\'est rattaché à aucune clinique. Contactez l\'administrateur.',
+            ]);
+        }
+
         // Vérifier que la clinique est active
         if ($user->clinic && !$user->clinic->is_active) {
             auth()->logout();
             return redirect()->route('login')->withErrors([
                 'email' => 'Votre clinique est actuellement désactivée. Contactez l\'administrateur.',
             ]);
+        }
+
+        // Vérifier que la clinique n'est pas bloquée (non-paiement)
+        if ($user->clinic && $user->clinic->is_blocked) {
+            $slug = $user->clinic->slug;
+            auth()->logout();
+            $request->session()->invalidate();
+            return redirect()->route('clinic.blocked', ['clinic' => $slug]);
         }
 
         // Vérifier les paramètres de route (model binding)

@@ -181,7 +181,6 @@
 </div>
 
 <script>
-    function toggleModal(id) { document.getElementById(id).classList.toggle('hidden'); }
     function openEditSpec(s) {
         document.getElementById('editSpecForm').action = `/specialites/${s.id}`;
         document.getElementById('snom').value = s.nom;

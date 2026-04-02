@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MonRDV - Système de Gestion</title>
+    <title>{{ $clinicName ?? 'MonRDV' }} - Gestion</title>
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    @include('layouts.partials.clinic-branding-css')
 </head>
 <body class="bg-[#f8fafc] flex h-screen overflow-hidden font-sans">
 
@@ -31,10 +32,9 @@
                     'patient' => 'Patient',
                     default => 'Utilisateur',
                 };
-                $clinicName = auth()->user()->clinic->name ?? '';
             @endphp
             <span class="text-[10px] font-black text-blue-900/40 uppercase tracking-widest">
-                {{ $roleLabel }} {{ $clinicName ? '— ' . $clinicName : 'MonRDV' }}
+                {{ $roleLabel }} — {{ $clinicName ?? 'MonRDV' }}
             </span>
         </header>
 

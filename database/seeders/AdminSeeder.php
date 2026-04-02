@@ -28,7 +28,6 @@ class AdminSeeder extends Seeder
             [
                 'name' => 'NGUIMBI FILIENCE',
                 'password' => Hash::make('password'),
-                'plain_password' => 'password',
                 'role' => 'admin',
                 'clinic_id' => $clinic->id,
                 'email_verified_at' => now(),
@@ -41,7 +40,6 @@ class AdminSeeder extends Seeder
             [
                 'name' => 'Secrétaire 1',
                 'password' => Hash::make('password'),
-                'plain_password' => 'password',
                 'role' => 'secretaire',
                 'clinic_id' => $clinic->id,
                 'email_verified_at' => now(),

@@ -10,7 +10,7 @@ class Consultation extends Model
     use BelongsToClinic;
 
     protected $fillable = [
-        'patient_id', 'medecin_id', 'rendez_vous_id',
+        'clinic_id', 'patient_id', 'medecin_id', 'rendez_vous_id',
         'montant_total', 'taux_couverture',
         'montant_assurance', 'montant_patient',
         'montant_donne', 'montant_rendu', 'notes',

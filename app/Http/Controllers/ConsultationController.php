@@ -27,10 +27,13 @@ class ConsultationController extends Controller
         }
 
         if ($request->filled('date_debut') && $request->filled('date_fin')) {
-            $query->whereBetween('created_at', [$request->date_debut, $request->date_fin . ' 23:59:59']);
+            $request->validate(['date_debut' => 'date', 'date_fin' => 'date']);
+            $query->whereBetween('created_at', [$request->date_debut . ' 00:00:00', $request->date_fin . ' 23:59:59']);
         } elseif ($request->filled('date_debut')) {
+            $request->validate(['date_debut' => 'date']);
             $query->whereDate('created_at', '>=', $request->date_debut);
         } elseif ($request->filled('date_fin')) {
+            $request->validate(['date_fin' => 'date']);
             $query->whereDate('created_at', '<=', $request->date_fin);
         }
 

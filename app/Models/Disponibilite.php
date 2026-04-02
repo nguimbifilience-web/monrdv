@@ -10,7 +10,7 @@ class Disponibilite extends Model
     use BelongsToClinic;
 
     // TRÈS IMPORTANT : Sans cette ligne, l'enregistrement échoue silencieusement
-    protected $fillable = ['medecin_id', 'date_travail'];
+    protected $fillable = ['clinic_id', 'medecin_id', 'date_travail'];
 
     protected $casts = [
         'date_travail' => 'date',

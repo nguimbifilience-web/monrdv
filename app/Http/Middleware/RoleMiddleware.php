@@ -21,7 +21,13 @@ class RoleMiddleware
         }
 
         if (!in_array($user->role, $roles)) {
-            return redirect()->route('login')->with('error', 'Accès non autorisé.');
+            $redirect = match($user->role) {
+                'medecin' => route('medecin.dashboard'),
+                'patient' => route('patient.dashboard'),
+                'admin', 'secretaire' => route('dashboard'),
+                default => route('login'),
+            };
+            return redirect($redirect)->with('error', 'Accès non autorisé à cette section.');
         }
 
         return $next($request);

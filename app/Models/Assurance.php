@@ -10,6 +10,7 @@ class Assurance extends Model
     use BelongsToClinic;
 
     protected $fillable = [
+        'clinic_id',
         'nom',
         'type',
         'nom_referent',

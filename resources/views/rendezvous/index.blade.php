@@ -319,8 +319,6 @@
     let currentTaux = 0;
     let currentTarif = 0;
 
-    function toggleModal(id) { document.getElementById(id).classList.toggle('hidden'); }
-
     function chargerInfoPatient(patientId) {
         if (!patientId) {
             document.getElementById('bloc_info').classList.add('hidden');
@@ -365,6 +363,10 @@
                 document.getElementById('hidden_tarif_specialite').value = currentTarif;
                 document.getElementById('bloc_info').classList.remove('hidden');
                 toggleAssurance();
+            })
+            .catch(() => {
+                document.getElementById('bloc_info').classList.add('hidden');
+                alert('Erreur lors du chargement des informations du patient.');
             });
     }
 

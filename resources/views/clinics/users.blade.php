@@ -9,6 +9,13 @@
             </a>
             <h1 class="text-3xl font-black text-blue-900 uppercase italic">{{ $clinic->name }}</h1>
             <p class="text-xs text-gray-400 font-bold uppercase tracking-widest">Gestion des utilisateurs</p>
+            <div class="flex items-center gap-2 mt-1">
+                <span class="text-[10px] font-mono text-blue-500 bg-blue-50 px-3 py-1 rounded-lg" id="clinicUrl">{{ route('clinic.portal', $clinic->slug) }}</span>
+                <button onclick="navigator.clipboard.writeText(document.getElementById('clinicUrl').textContent); this.innerHTML='<i class=\'fas fa-check text-green-500\'></i>'; setTimeout(() => this.innerHTML='<i class=\'fas fa-copy\'></i>', 2000)"
+                    class="text-gray-400 hover:text-blue-500 transition-colors" title="Copier le lien d'acces">
+                    <i class="fas fa-copy"></i>
+                </button>
+            </div>
         </div>
         <button onclick="toggleModal('modalAddUser')" class="bg-blue-600 hover:bg-blue-700 text-white font-black px-6 py-3 rounded-2xl shadow-lg transition-all uppercase tracking-widest text-[10px]">
             <i class="fas fa-plus mr-2"></i> Nouvel Utilisateur
@@ -20,6 +27,28 @@
         <p class="text-xs font-bold">{{ session('success') }}</p>
     </div>
     <script>setTimeout(() => document.getElementById('flash-msg')?.remove(), 10000)</script>
+    @endif
+
+    @if(session('reset_password'))
+    @php $resetData = json_decode(session('reset_password')); @endphp
+    <div class="mb-4 p-5 bg-yellow-50 border-2 border-yellow-300 rounded-2xl">
+        <div class="flex items-center gap-2 mb-3">
+            <i class="fas fa-key text-yellow-500"></i>
+            <span class="font-black text-yellow-700 text-sm uppercase">Mot de passe reinitialise</span>
+        </div>
+        <div class="bg-white rounded-xl p-4 space-y-2">
+            <p class="text-xs text-gray-500"><span class="font-bold">Nom :</span> {{ $resetData->name }}</p>
+            <p class="text-xs text-gray-500"><span class="font-bold">Email :</span> {{ $resetData->email }}</p>
+            <div class="flex items-center gap-3 mt-2">
+                <span class="font-bold text-xs text-gray-500">Mot de passe :</span>
+                <code class="bg-yellow-100 text-yellow-800 px-4 py-2 rounded-xl font-black text-lg tracking-widest" id="resetPwdVal">{{ $resetData->password }}</code>
+                <button onclick="navigator.clipboard.writeText(document.getElementById('resetPwdVal').textContent); this.innerHTML='<i class=\'fas fa-check text-green-500\'></i> Copie !'; setTimeout(() => this.innerHTML='<i class=\'fas fa-copy\'></i> Copier', 2000)"
+                    class="bg-yellow-200 text-yellow-700 px-3 py-2 rounded-lg text-[10px] font-black uppercase hover:bg-yellow-300 transition-all">
+                    <i class="fas fa-copy"></i> Copier
+                </button>
+            </div>
+        </div>
+    </div>
     @endif
 
     {{-- Stats --}}
@@ -49,7 +78,6 @@
                 <tr class="text-[9px] font-black uppercase text-gray-300">
                     <th class="p-5">Utilisateur</th>
                     <th class="p-5">Email</th>
-                    <th class="p-5">Mot de passe</th>
                     <th class="p-5 text-center">Role</th>
                     <th class="p-5 text-center">Actions</th>
                 </tr>
@@ -77,13 +105,6 @@
                     <td class="p-5">
                         <p class="text-xs font-mono text-gray-600">{{ $user->email }}</p>
                     </td>
-                    <td class="p-5">
-                        @if($user->plain_password)
-                            <span class="text-xs font-mono bg-gray-100 px-2 py-1 rounded-lg text-gray-500">{{ $user->plain_password }}</span>
-                        @else
-                            <span class="text-[10px] text-gray-300 italic">modifie</span>
-                        @endif
-                    </td>
                     <td class="p-5 text-center">
                         <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase
                             {{ $user->role === 'admin' ? 'bg-orange-100 text-orange-600' : ($user->role === 'medecin' ? 'bg-green-100 text-green-600' : ($user->role === 'patient' ? 'bg-cyan-100 text-cyan-600' : 'bg-blue-100 text-blue-600')) }}">
@@ -96,12 +117,10 @@
                                 class="w-8 h-8 bg-blue-50 text-blue-500 rounded-lg flex items-center justify-center hover:bg-blue-500 hover:text-white transition-all" title="Modifier">
                                 <i class="fas fa-pen text-[10px]"></i>
                             </button>
-                            <form action="{{ route('clinics.users.reset', [$clinic, $user]) }}" method="POST" onsubmit="return confirm('Reinitialiser le mot de passe ?')">
-                                @csrf @method('PATCH')
-                                <button class="w-8 h-8 bg-yellow-50 text-yellow-500 rounded-lg flex items-center justify-center hover:bg-yellow-500 hover:text-white transition-all" title="Reset mot de passe">
-                                    <i class="fas fa-key text-[10px]"></i>
-                                </button>
-                            </form>
+                            <button onclick="ouvrirReset({{ $user->id }}, '{{ addslashes($user->name) }}')"
+                                class="w-8 h-8 bg-yellow-50 text-yellow-500 rounded-lg flex items-center justify-center hover:bg-yellow-500 hover:text-white transition-all" title="Reset mot de passe">
+                                <i class="fas fa-key text-[10px]"></i>
+                            </button>
                             <form action="{{ route('clinics.users.destroy', [$clinic, $user]) }}" method="POST" onsubmit="return confirm('Supprimer ce compte ?')">
                                 @csrf @method('DELETE')
                                 <button class="w-8 h-8 bg-red-50 text-red-400 rounded-lg flex items-center justify-center hover:bg-red-500 hover:text-white transition-all" title="Supprimer">
@@ -113,7 +132,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="5" class="p-20 text-center">
+                    <td colspan="4" class="p-20 text-center">
                         <i class="fas fa-users text-4xl text-gray-200 mb-3"></i>
                         <p class="text-gray-400 italic text-xs font-bold uppercase">Aucun utilisateur dans cette clinique</p>
                     </td>
@@ -194,6 +213,34 @@
     </div>
 </div>
 
+{{-- MODAL RESET MOT DE PASSE --}}
+<div id="modalResetPwd" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-[2rem] w-full max-w-md p-8 shadow-2xl">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-lg font-black text-yellow-600 uppercase"><i class="fas fa-key mr-2"></i>Reinitialiser</h2>
+            <button onclick="toggleModal('modalResetPwd')" class="w-8 h-8 flex items-center justify-center bg-gray-100 text-gray-400 rounded-xl hover:bg-red-50 hover:text-red-400 transition-all">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <p class="text-sm font-bold text-gray-600 mb-4">Compte : <span id="reset_user_name" class="text-blue-900"></span></p>
+        <form id="formReset" method="POST" class="space-y-4">
+            @csrf @method('PATCH')
+            <div>
+                <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Nouveau mot de passe <span class="text-gray-300">(laisser vide pour generer automatiquement)</span></label>
+                <input type="text" name="new_password"
+                    class="w-full bg-gray-50 border-2 border-gray-100 rounded-2xl px-4 py-3 font-bold text-blue-900 text-sm focus:border-yellow-400 focus:ring-0 transition-all"
+                    placeholder="Min. 8 caracteres ou laisser vide">
+            </div>
+            <div class="flex justify-end gap-3">
+                <button type="button" onclick="toggleModal('modalResetPwd')" class="text-gray-400 text-[10px] font-black uppercase">Annuler</button>
+                <button type="submit" class="bg-yellow-500 text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase hover:bg-yellow-600 transition-all">
+                    <i class="fas fa-key mr-1"></i> Reinitialiser
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
 function editUser(id, name, email, role) {
     document.getElementById('edituser_name').value = name;
@@ -201,6 +248,12 @@ function editUser(id, name, email, role) {
     document.getElementById('edituser_role').value = role;
     document.getElementById('editUserForm').action = '/super-admin/cliniques/{{ $clinic->id }}/utilisateurs/' + id;
     toggleModal('modalEditUser');
+}
+
+function ouvrirReset(id, name) {
+    document.getElementById('reset_user_name').textContent = name;
+    document.getElementById('formReset').action = '/super-admin/cliniques/{{ $clinic->id }}/utilisateurs/' + id + '/reset';
+    toggleModal('modalResetPwd');
 }
 </script>
 @endsection

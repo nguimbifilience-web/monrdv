@@ -10,7 +10,7 @@ class ActivityLog extends Model
     use BelongsToClinic;
 
     protected $fillable = [
-        "user_id", "action", "model_type", "model_id",
+        "clinic_id", "user_id", "action", "model_type", "model_id",
         "description", "old_values", "new_values", "ip_address",
     ];
 

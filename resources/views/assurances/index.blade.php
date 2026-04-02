@@ -130,8 +130,6 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    function toggleModal(id) { document.getElementById(id).classList.toggle('hidden'); }
-
     function openEditModal(a) {
         document.getElementById('editForm').action = `/assurances/${a.id}`;
         document.getElementById('enom').value = a.nom;

@@ -32,9 +32,13 @@
 
     <div class="ticket bg-white rounded-2xl shadow-xl w-full max-w-sm p-8">
         {{-- En-tête --}}
+        @php $ticketClinic = $consultation->patient->clinic ?? auth()->user()->clinic; @endphp
         <div class="text-center border-b-2 border-dashed border-gray-200 pb-6 mb-6">
-            <h1 class="text-2xl font-black text-blue-900 uppercase">MonRDV</h1>
-            <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Système de gestion médicale</p>
+            @if($ticketClinic?->logo_url)
+                <img src="{{ $ticketClinic->logo_url }}" alt="{{ $ticketClinic->name }}" class="w-16 h-16 mx-auto rounded-xl object-cover mb-2">
+            @endif
+            <h1 class="text-2xl font-black text-blue-900 uppercase">{{ $ticketClinic?->name ?? 'MonRDV' }}</h1>
+            <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{{ $ticketClinic?->address ?? 'Système de gestion médicale' }}</p>
             <div class="mt-3">
                 <span class="bg-green-50 text-green-600 px-3 py-1 rounded-lg text-[10px] font-black uppercase border border-green-100">
                     Ticket de Consultation
@@ -118,7 +122,7 @@
         {{-- Pied de ticket --}}
         <div class="mt-6 pt-4 border-t-2 border-dashed border-gray-200 text-center">
             <p class="text-[9px] text-gray-400 font-bold uppercase tracking-widest">Merci pour votre confiance</p>
-            <p class="text-[8px] text-gray-300 mt-1">MonRDV - Système de gestion médicale</p>
+            <p class="text-[8px] text-gray-300 mt-1">{{ $ticketClinic?->name ?? 'MonRDV' }} - Gestion médicale</p>
         </div>
     </div>
 

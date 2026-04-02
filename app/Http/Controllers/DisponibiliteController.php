@@ -27,8 +27,8 @@ class DisponibiliteController extends Controller
             return response()->json(['status' => 'added']);
 
         } catch (\Exception $e) {
-            // Si ça plante, on renvoie l'erreur précise au lieu d'un message générique
-            return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
+            report($e);
+            return response()->json(['status' => 'error', 'message' => 'Une erreur est survenue lors de la modification.'], 500);
         }
     }
 }

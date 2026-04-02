@@ -31,6 +31,9 @@
     </nav>
 
     <div class="p-8 border-t border-white/10">
+        <a href="{{ route('profile.edit') }}" class="flex items-center gap-2 text-white/40 hover:text-white/80 transition-colors mb-4 text-[10px] font-bold uppercase tracking-widest">
+            <i class="fas fa-user-cog"></i> Mon Profil
+        </a>
         <div class="flex items-center justify-between">
             <div class="flex items-center gap-3">
                 <div class="w-8 h-8 bg-red-500 rounded-lg flex items-center justify-center text-white text-xs font-black">

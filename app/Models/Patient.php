@@ -13,7 +13,7 @@ class Patient extends Model
     protected $fillable = [
         'nom', 'prenom', 'telephone', 'email', 'quartier',
         'est_assure', 'assurance_id', 'medecin_id',
-        'notes_medicales', 'observations', 'user_id',
+        'notes_medicales', 'observations', 'user_id', 'clinic_id',
     ];
 
     public function scopeFilter(Builder $query, array $filters)

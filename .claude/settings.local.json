@@ -52,7 +52,9 @@
       "Bash(npm -v)",
       "Bash(git push:*)",
       "Bash(git remote:*)",
-      "Bash(./vendor/bin/sail up:*)"
+      "Bash(./vendor/bin/sail up:*)",
+      "Bash(netsh advfirewall:*)",
+      "Bash(git rm:*)"
     ]
   }
 }

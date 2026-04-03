@@ -49,7 +49,10 @@
       "Bash(pip3 --version)",
       "Bash(python -m pip --version)",
       "Bash(py --version)",
-      "Bash(npm -v)"
+      "Bash(npm -v)",
+      "Bash(git push:*)",
+      "Bash(git remote:*)",
+      "Bash(./vendor/bin/sail up:*)"
     ]
   }
 }

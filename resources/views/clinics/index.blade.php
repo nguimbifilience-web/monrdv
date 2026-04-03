@@ -145,6 +145,7 @@
                                 'address' => $clinic->address,
                                 'primary_color' => $clinic->primary_color ?? '#1e3a8a',
                                 'secondary_color' => $clinic->secondary_color ?? '#f97316',
+                                'sidebar_text_color' => $clinic->sidebar_text_color ?? '#ffffff',
                                 'logo_url' => $clinic->logo_url,
                                 'subscription_expires_at' => $clinic->subscription_expires_at?->format('Y-m-d'),
                             ]) }})"
@@ -241,6 +242,10 @@
                         <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Couleur d'accent</label>
                         <input type="color" name="secondary_color" value="#f97316" class="w-full h-12 rounded-xl border-2 border-gray-100 cursor-pointer">
                     </div>
+                    <div>
+                        <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Couleur texte sidebar</label>
+                        <input type="color" name="sidebar_text_color" value="#ffffff" class="w-full h-12 rounded-xl border-2 border-gray-100 cursor-pointer">
+                    </div>
                 </div>
             </div>
 
@@ -316,6 +321,10 @@
                         <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Couleur d'accent</label>
                         <input type="color" name="secondary_color" id="edit_secondary_color" class="w-full h-12 rounded-xl border-2 border-gray-100 cursor-pointer">
                     </div>
+                    <div>
+                        <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Couleur texte sidebar</label>
+                        <input type="color" name="sidebar_text_color" id="edit_sidebar_text_color" class="w-full h-12 rounded-xl border-2 border-gray-100 cursor-pointer">
+                    </div>
                 </div>
             </div>
 
@@ -388,6 +397,7 @@ function editClinic(c) {
     document.getElementById('edit_address').value = c.address || '';
     document.getElementById('edit_primary_color').value = c.primary_color || '#1e3a8a';
     document.getElementById('edit_secondary_color').value = c.secondary_color || '#f97316';
+    document.getElementById('edit_sidebar_text_color').value = c.sidebar_text_color || '#ffffff';
     document.getElementById('edit_subscription').value = c.subscription_expires_at || '';
     document.getElementById('editClinicForm').action = '/super-admin/cliniques/' + c.id;
 

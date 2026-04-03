@@ -32,7 +32,7 @@
                         <h1 class="text-white font-black text-3xl uppercase tracking-tighter italic">
                             {{ ($clinic ?? null)?->name ?? 'MonRDV' }}
                         </h1>
-                        <p class="text-blue-400 text-[10px] uppercase font-bold tracking-widest">Espace Patient</p>
+                        <p class="text-blue-400 text-[10px] uppercase font-bold tracking-widest">Espace Patient — <span class="text-orange-400">MnRdv</span></p>
                     </div>
                 </div>
             </div>
@@ -67,7 +67,7 @@
                 </div>
             </div>
 
-            <p class="text-blue-500 text-[9px] uppercase font-bold tracking-widest">&copy; {{ date('Y') }} {{ ($clinic ?? null)?->name ?? 'MonRDV' }}</p>
+            <p class="text-blue-500 text-[9px] uppercase font-bold tracking-widest">&copy; {{ date('Y') }} {{ ($clinic ?? null)?->name ?? 'MonRDV' }} — MnRdv</p>
         </div>
 
         {{-- PANNEAU DROIT - FORMULAIRE --}}
@@ -77,7 +77,7 @@
                 <div class="w-16 h-16 bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl flex items-center justify-center shadow-lg mx-auto mb-3">
                     <span class="text-white font-black text-xl italic tracking-tighter">LZy</span>
                 </div>
-                <h1 class="text-blue-900 font-black text-3xl uppercase tracking-tighter italic">Mon<span class="text-orange-500">RDV</span></h1>
+                <h1 class="text-blue-900 font-black text-3xl uppercase tracking-tighter italic">{{ ($clinic ?? null)?->name ?? 'MonRDV' }} <span class="text-orange-500 text-lg">MnRdv</span></h1>
             </div>
 
             <div class="mb-6 relative z-10">

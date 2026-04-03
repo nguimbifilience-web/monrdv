@@ -18,6 +18,7 @@ class AppServiceProvider extends ServiceProvider
             $clinic = auth()->user()?->clinic;
             $view->with('clinicPrimaryColor', $clinic?->getPrimaryColorOrDefault() ?? '#1e3a8a');
             $view->with('clinicSecondaryColor', $clinic?->getSecondaryColorOrDefault() ?? '#f97316');
+            $view->with('clinicSidebarTextColor', $clinic?->getSidebarTextColorOrDefault() ?? '#ffffff');
             $view->with('clinicLogoUrl', $clinic?->logo_url);
             $view->with('clinicName', $clinic?->name ?? 'MonRDV');
         });

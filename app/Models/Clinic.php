@@ -9,7 +9,7 @@ class Clinic extends Model
 {
     protected $fillable = [
         'name', 'slug', 'email', 'phone', 'address',
-        'logo_path', 'primary_color', 'secondary_color',
+        'logo_path', 'primary_color', 'secondary_color', 'sidebar_text_color',
         'is_active', 'is_blocked', 'blocked_reason', 'blocked_at', 'subscription_expires_at',
     ];
 
@@ -36,6 +36,11 @@ class Clinic extends Model
     public function getSecondaryColorOrDefault(): string
     {
         return $this->secondary_color ?? '#f97316';
+    }
+
+    public function getSidebarTextColorOrDefault(): string
+    {
+        return $this->sidebar_text_color ?? '#ffffff';
     }
 
     public function isBlocked(): bool

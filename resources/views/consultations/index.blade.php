@@ -5,7 +5,7 @@
     <div class="flex justify-between items-center mb-6">
         <div>
             <h1 class="text-3xl font-black text-blue-900 uppercase italic">Historique</h1>
-            <p class="text-xs text-gray-400 font-bold uppercase tracking-widest">Consultations enregistrées</p>
+            <p class="text-xs text-gray-400 font-bold uppercase tracking-widest">Consultations enregistrees</p>
         </div>
     </div>
 
@@ -23,20 +23,44 @@
         </a>
     </div>
 
+    {{-- ONGLETS PAR MEDECIN --}}
+    @php $currentMedecin = request('medecin_id', ''); @endphp
+
+    <div class="flex gap-2 mb-6 flex-wrap">
+        @php
+            $tabParams = request()->except(['medecin_id', 'page']);
+        @endphp
+        <a href="{{ route('consultations.index', $tabParams) }}"
+           class="flex items-center gap-2 px-5 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all
+           {{ !$currentMedecin ? 'bg-blue-500 text-white shadow-lg' : 'bg-gray-50 text-gray-400 hover:bg-gray-100' }}">
+            <i class="fas fa-list"></i>
+            Tout
+        </a>
+        @foreach($medecins as $m)
+            @php
+                $mParams = array_merge($tabParams, ['medecin_id' => $m->id]);
+                $isActive = $currentMedecin == $m->id;
+            @endphp
+            <a href="{{ route('consultations.index', $mParams) }}"
+               class="flex items-center gap-2 px-5 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all
+               {{ $isActive ? 'bg-green-500 text-white shadow-lg' : 'bg-gray-50 text-gray-400 hover:bg-gray-100' }}">
+                <i class="fas fa-user-md"></i>
+                Dr. {{ $m->nom }}
+            </a>
+        @endforeach
+    </div>
+
     {{-- FILTRES --}}
     <div class="bg-white rounded-2xl shadow-sm border border-gray-50 p-4 mb-6">
         <form action="{{ route('consultations.index') }}" method="GET" class="flex items-center gap-4">
+            @if($currentMedecin)
+                <input type="hidden" name="medecin_id" value="{{ $currentMedecin }}">
+            @endif
             <div class="flex-1 relative">
                 <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 text-sm"></i>
                 <input type="text" name="search" value="{{ request('search') }}" placeholder="Rechercher un patient..."
                     class="w-full bg-gray-50 border-none rounded-xl pl-10 pr-4 py-3 text-xs font-bold text-blue-900 placeholder-gray-400">
             </div>
-            <select name="medecin_id" class="bg-gray-50 border-none rounded-xl px-4 py-3 text-xs font-bold text-blue-900 min-w-[170px]">
-                <option value="">Tous les médecins</option>
-                @foreach($medecins as $m)
-                    <option value="{{ $m->id }}" {{ request('medecin_id') == $m->id ? 'selected' : '' }}>Dr. {{ $m->nom }}</option>
-                @endforeach
-            </select>
             <div class="flex items-center gap-2">
                 <input type="date" name="date_debut" value="{{ request('date_debut') }}" class="bg-gray-50 border-none rounded-xl px-3 py-3 text-xs font-bold text-blue-900" placeholder="Du">
                 <span class="text-gray-300 text-xs font-bold">→</span>
@@ -53,17 +77,29 @@
 
     {{-- TABLEAU --}}
     <div class="bg-white rounded-[2.5rem] shadow-sm border border-gray-50 overflow-hidden">
+        @if($currentMedecin)
+            @php $medecinActif = $medecins->firstWhere('id', $currentMedecin); @endphp
+            @if($medecinActif)
+            <div class="px-6 py-4 border-b border-gray-50 flex items-center gap-3">
+                <div class="w-8 h-8 bg-green-500 rounded-xl flex items-center justify-center text-white">
+                    <i class="fas fa-user-md text-sm"></i>
+                </div>
+                <h2 class="font-black text-blue-900 text-sm uppercase tracking-wide">Dr. {{ $medecinActif->nom }} {{ $medecinActif->prenom }}</h2>
+                <span class="bg-green-50 text-green-600 px-2 py-0.5 rounded-lg text-[10px] font-black">{{ $consultations->total() }} consultations</span>
+            </div>
+            @endif
+        @endif
         <table class="w-full text-left">
             <thead class="bg-gray-50/50 border-b border-gray-50">
                 <tr class="text-[9px] font-black uppercase text-gray-300">
                     <th class="p-5">N°</th>
                     <th class="p-5">Date</th>
                     <th class="p-5">Patient</th>
-                    <th class="p-5">Médecin / Spécialité</th>
+                    <th class="p-5">Medecin / Specialite</th>
                     <th class="p-5 text-center">Tarif</th>
                     <th class="p-5 text-center">Assurance</th>
-                    <th class="p-5 text-center">Payé par patient</th>
-                    <th class="p-5 text-center">Donné</th>
+                    <th class="p-5 text-center">Paye par patient</th>
+                    <th class="p-5 text-center">Donne</th>
                     <th class="p-5 text-center">Rendu</th>
                     <th class="p-5 text-center">Ticket</th>
                 </tr>
@@ -89,7 +125,7 @@
                     <td class="p-5">
                         <div class="text-xs font-bold text-gray-700">Dr. {{ $c->medecin->nom ?? '' }}</div>
                         <span class="bg-indigo-50 text-indigo-500 px-2 py-0.5 rounded text-[9px] font-black uppercase">
-                            {{ $c->medecin->specialite->nom ?? 'Généraliste' }}
+                            {{ $c->medecin->specialite->nom ?? 'Generaliste' }}
                         </span>
                     </td>
                     <td class="p-5 text-center">
@@ -134,7 +170,7 @@
                 <tr>
                     <td colspan="10" class="p-20 text-center">
                         <i class="fas fa-history text-4xl text-gray-200 mb-3"></i>
-                        <p class="text-gray-400 italic text-xs font-bold uppercase">Aucune consultation enregistrée</p>
+                        <p class="text-gray-400 italic text-xs font-bold uppercase">Aucune consultation enregistree</p>
                     </td>
                 </tr>
                 @endforelse

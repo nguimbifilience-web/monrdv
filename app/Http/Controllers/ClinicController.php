@@ -106,6 +106,7 @@ class ClinicController extends Controller
             'logo' => 'nullable|image|mimes:jpg,jpeg,png,svg|max:2048',
             'primary_color' => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'secondary_color' => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'sidebar_text_color' => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'admin_name' => 'nullable|string|max:255',
             'admin_email' => 'nullable|required_with:admin_name|email|unique:users,email',
         ]);
@@ -118,6 +119,7 @@ class ClinicController extends Controller
             'address' => $request->address,
             'primary_color' => $request->primary_color,
             'secondary_color' => $request->secondary_color,
+            'sidebar_text_color' => $request->sidebar_text_color,
         ];
 
         if ($request->hasFile('logo')) {
@@ -155,6 +157,7 @@ class ClinicController extends Controller
             'logo' => 'nullable|image|mimes:jpg,jpeg,png,svg|max:2048',
             'primary_color' => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'secondary_color' => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'sidebar_text_color' => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'subscription_expires_at' => 'nullable|date',
         ]);
 
@@ -166,6 +169,7 @@ class ClinicController extends Controller
             'address' => $request->address,
             'primary_color' => $request->primary_color,
             'secondary_color' => $request->secondary_color,
+            'sidebar_text_color' => $request->sidebar_text_color,
             'subscription_expires_at' => $request->subscription_expires_at,
         ];
 

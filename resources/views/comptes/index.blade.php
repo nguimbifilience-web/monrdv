@@ -61,83 +61,101 @@
     </div>
     @endif
 
-    {{-- TABLEAU --}}
-    <div class="bg-white rounded-[2.5rem] shadow-sm border border-gray-50 overflow-hidden">
-        <table class="w-full text-left">
-            <thead class="bg-gray-50/50 border-b border-gray-50">
-                <tr class="text-[9px] font-black uppercase text-gray-300">
-                    <th class="p-5">Utilisateur</th>
-                    <th class="p-5">Email</th>
-                    <th class="p-5 text-center">Role</th>
-                    <th class="p-5 text-center">Actions</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-50">
-                @foreach($comptes as $compte)
-                <tr class="hover:bg-gray-50/30 transition-colors" id="row-{{ $compte->id }}">
-                    <td class="p-5">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold shadow-md
-                                {{ $compte->role === 'admin' ? 'bg-orange-500' : ($compte->role === 'medecin' ? 'bg-green-500' : ($compte->role === 'patient' ? 'bg-cyan-500' : 'bg-blue-500')) }}">
-                                @if($compte->role === 'medecin')
-                                    <i class="fas fa-user-md"></i>
-                                @elseif($compte->role === 'patient')
-                                    <i class="fas fa-user"></i>
-                                @elseif($compte->role === 'admin')
-                                    <i class="fas fa-crown"></i>
-                                @else
-                                    <i class="fas fa-headset"></i>
-                                @endif
-                            </div>
-                            <div>
-                                <span class="font-black text-blue-900 text-xs" id="name-display-{{ $compte->id }}">{{ $compte->name }}</span>
-                            </div>
-                        </div>
-                    </td>
-                    <td class="p-5">
-                        <span class="text-xs font-bold text-gray-600">{{ $compte->email }}</span>
-                    </td>
-                    <td class="p-5 text-center">
-                        @if($compte->role === 'admin')
-                            <span class="bg-orange-50 text-orange-600 px-3 py-1 rounded-lg text-[10px] font-black uppercase">Admin</span>
-                        @elseif($compte->role === 'secretaire')
-                            <span class="bg-blue-50 text-blue-600 px-3 py-1 rounded-lg text-[10px] font-black uppercase">Secretaire</span>
-                        @elseif($compte->role === 'medecin')
-                            <span class="bg-green-50 text-green-600 px-3 py-1 rounded-lg text-[10px] font-black uppercase">Medecin</span>
-                        @else
-                            <span class="bg-cyan-50 text-cyan-600 px-3 py-1 rounded-lg text-[10px] font-black uppercase">Patient</span>
-                        @endif
-                    </td>
-                    <td class="p-5">
-                        <div class="flex justify-center gap-2">
-                            {{-- Modifier --}}
-                            <button onclick="ouvrirModif({{ $compte->id }}, '{{ addslashes($compte->name) }}', '{{ $compte->email }}')"
-                                class="w-9 h-9 flex items-center justify-center bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-600 hover:text-white transition-all" title="Modifier">
-                                <i class="fas fa-edit"></i>
-                            </button>
+    {{-- ONGLETS --}}
+    @php
+        $roles = [
+            'admin' => ['label' => 'Administrateurs', 'icon' => 'fa-crown', 'color' => 'orange', 'bg' => 'bg-orange-500'],
+            'secretaire' => ['label' => 'Secretaires', 'icon' => 'fa-headset', 'color' => 'blue', 'bg' => 'bg-blue-500'],
+            'medecin' => ['label' => 'Medecins', 'icon' => 'fa-user-md', 'color' => 'green', 'bg' => 'bg-green-500'],
+            'patient' => ['label' => 'Patients', 'icon' => 'fa-user', 'color' => 'cyan', 'bg' => 'bg-cyan-500'],
+        ];
+    @endphp
 
-                            {{-- Réinitialiser mot de passe --}}
-                            <button onclick="ouvrirReset({{ $compte->id }}, '{{ addslashes($compte->name) }}')"
-                                class="w-9 h-9 flex items-center justify-center bg-yellow-50 text-yellow-600 rounded-xl hover:bg-yellow-500 hover:text-white transition-all" title="Reinitialiser mot de passe">
-                                <i class="fas fa-key"></i>
-                            </button>
-
-                            {{-- Supprimer (pas soi-même) --}}
-                            @if($compte->id !== auth()->id())
-                            <form action="{{ route('comptes.destroy', $compte->id) }}" method="POST" onsubmit="return confirm('Supprimer le compte de {{ addslashes($compte->name) }} ?')">
-                                @csrf @method('DELETE')
-                                <button type="submit" class="w-9 h-9 flex items-center justify-center bg-red-50 text-red-500 rounded-xl hover:bg-red-500 hover:text-white transition-all" title="Supprimer">
-                                    <i class="fas fa-trash-alt"></i>
-                                </button>
-                            </form>
-                            @endif
-                        </div>
-                    </td>
-                </tr>
-                @endforeach
-            </tbody>
-        </table>
+    <div class="flex gap-2 mb-6">
+        @foreach($roles as $roleKey => $roleInfo)
+            @php $count = $comptes->where('role', $roleKey)->count(); @endphp
+            <button onclick="switchTab('{{ $roleKey }}')" id="tab-{{ $roleKey }}"
+                class="tab-btn flex items-center gap-2 px-5 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all
+                {{ $loop->first ? 'bg-'.$roleInfo['color'].'-500 text-white shadow-lg' : 'bg-gray-50 text-gray-400 hover:bg-gray-100' }}">
+                <i class="fas {{ $roleInfo['icon'] }}"></i>
+                {{ $roleInfo['label'] }}
+                <span class="ml-1 w-6 h-6 rounded-lg flex items-center justify-center text-[10px] font-black
+                    {{ $loop->first ? 'bg-white/20 text-white' : 'bg-gray-200 text-gray-500' }}" id="tab-count-{{ $roleKey }}">{{ $count }}</span>
+            </button>
+        @endforeach
     </div>
+
+    {{-- SECTIONS PAR ROLE --}}
+    @foreach($roles as $roleKey => $roleInfo)
+        @php $roleComptes = $comptes->where('role', $roleKey); @endphp
+        <div id="section-{{ $roleKey }}" class="role-section {{ $loop->first ? '' : 'hidden' }}">
+            @if($roleComptes->isEmpty())
+                <div class="bg-white rounded-[2.5rem] shadow-sm border border-gray-50 p-12 text-center">
+                    <div class="w-16 h-16 {{ $roleInfo['bg'] }}/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                        <i class="fas {{ $roleInfo['icon'] }} text-{{ $roleInfo['color'] }}-400 text-2xl"></i>
+                    </div>
+                    <p class="text-gray-400 font-bold text-sm">Aucun compte {{ strtolower($roleInfo['label']) }}</p>
+                    <p class="text-gray-300 text-xs mt-1">Cliquez sur "Nouveau Compte" pour en ajouter un.</p>
+                </div>
+            @else
+                <div class="bg-white rounded-[2.5rem] shadow-sm border border-gray-50 overflow-hidden">
+                    <div class="px-6 py-4 border-b border-gray-50 flex items-center gap-3">
+                        <div class="w-8 h-8 {{ $roleInfo['bg'] }} rounded-xl flex items-center justify-center text-white">
+                            <i class="fas {{ $roleInfo['icon'] }} text-sm"></i>
+                        </div>
+                        <h2 class="font-black text-blue-900 text-sm uppercase tracking-wide">{{ $roleInfo['label'] }}</h2>
+                        <span class="bg-{{ $roleInfo['color'] }}-50 text-{{ $roleInfo['color'] }}-600 px-2 py-0.5 rounded-lg text-[10px] font-black">{{ $roleComptes->count() }}</span>
+                    </div>
+                    <table class="w-full text-left">
+                        <thead class="bg-gray-50/50 border-b border-gray-50">
+                            <tr class="text-[9px] font-black uppercase text-gray-300">
+                                <th class="p-5">Utilisateur</th>
+                                <th class="p-5">Email</th>
+                                <th class="p-5 text-center">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-50">
+                            @foreach($roleComptes as $compte)
+                            <tr class="hover:bg-gray-50/30 transition-colors" id="row-{{ $compte->id }}">
+                                <td class="p-5">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold shadow-md {{ $roleInfo['bg'] }}">
+                                            <i class="fas {{ $roleInfo['icon'] }}"></i>
+                                        </div>
+                                        <span class="font-black text-blue-900 text-xs" id="name-display-{{ $compte->id }}">{{ $compte->name }}</span>
+                                    </div>
+                                </td>
+                                <td class="p-5">
+                                    <span class="text-xs font-bold text-gray-600">{{ $compte->email }}</span>
+                                </td>
+                                <td class="p-5">
+                                    <div class="flex justify-center gap-2">
+                                        <button onclick="ouvrirModif({{ $compte->id }}, '{{ addslashes($compte->name) }}', '{{ $compte->email }}')"
+                                            class="w-9 h-9 flex items-center justify-center bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-600 hover:text-white transition-all" title="Modifier">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button onclick="ouvrirReset({{ $compte->id }}, '{{ addslashes($compte->name) }}')"
+                                            class="w-9 h-9 flex items-center justify-center bg-yellow-50 text-yellow-600 rounded-xl hover:bg-yellow-500 hover:text-white transition-all" title="Reinitialiser mot de passe">
+                                            <i class="fas fa-key"></i>
+                                        </button>
+                                        @if($compte->id !== auth()->id())
+                                        <form action="{{ route('comptes.destroy', $compte->id) }}" method="POST" onsubmit="return confirm('Supprimer le compte de {{ addslashes($compte->name) }} ?')">
+                                            @csrf @method('DELETE')
+                                            <button type="submit" class="w-9 h-9 flex items-center justify-center bg-red-50 text-red-500 rounded-xl hover:bg-red-500 hover:text-white transition-all" title="Supprimer">
+                                                <i class="fas fa-trash-alt"></i>
+                                            </button>
+                                        </form>
+                                        @endif
+                                    </div>
+                                </td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            @endif
+        </div>
+    @endforeach
 </div>
 
 {{-- MODAL MODIFIER --}}
@@ -165,14 +183,12 @@
                     class="w-full bg-gray-50 border-2 border-gray-100 rounded-2xl px-4 py-3 font-bold text-blue-900 text-sm focus:border-cyan-400 focus:ring-0 transition-all">
             </div>
 
-            {{-- Nouveau mot de passe --}}
             <div class="mb-4">
-                <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Nouveau mot de passe <span class="text-gray-300">(laisser vide pour garder l'actuel, min. 8 caractères)</span></label>
+                <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Nouveau mot de passe <span class="text-gray-300">(laisser vide pour garder l'actuel, min. 8 caracteres)</span></label>
                 <input type="text" name="password" id="modif_password" placeholder="Nouveau mot de passe..."
                     class="w-full bg-gray-50 border-2 border-gray-100 rounded-2xl px-4 py-3 font-bold text-blue-900 text-sm focus:border-cyan-400 focus:ring-0 transition-all" oninput="toggleConfirmation()">
             </div>
 
-            {{-- Confirmation --}}
             <div class="mb-6" id="bloc_confirmation" style="display: none;">
                 <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Confirmer le nouveau mot de passe</label>
                 <input type="text" name="password_confirmation" id="modif_password_confirm" placeholder="Retapez le mot de passe..."
@@ -272,6 +288,32 @@
 </div>
 
 <script>
+const tabColors = {
+    admin: { active: 'bg-orange-500 text-white shadow-lg', inactive: 'bg-gray-50 text-gray-400 hover:bg-gray-100', count_active: 'bg-white/20 text-white', count_inactive: 'bg-gray-200 text-gray-500' },
+    secretaire: { active: 'bg-blue-500 text-white shadow-lg', inactive: 'bg-gray-50 text-gray-400 hover:bg-gray-100', count_active: 'bg-white/20 text-white', count_inactive: 'bg-gray-200 text-gray-500' },
+    medecin: { active: 'bg-green-500 text-white shadow-lg', inactive: 'bg-gray-50 text-gray-400 hover:bg-gray-100', count_active: 'bg-white/20 text-white', count_inactive: 'bg-gray-200 text-gray-500' },
+    patient: { active: 'bg-cyan-500 text-white shadow-lg', inactive: 'bg-gray-50 text-gray-400 hover:bg-gray-100', count_active: 'bg-white/20 text-white', count_inactive: 'bg-gray-200 text-gray-500' },
+};
+
+function switchTab(role) {
+    document.querySelectorAll('.role-section').forEach(s => s.classList.add('hidden'));
+    document.getElementById('section-' + role).classList.remove('hidden');
+
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        const r = btn.id.replace('tab-', '');
+        const colors = tabColors[r];
+        btn.className = 'tab-btn flex items-center gap-2 px-5 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ' + colors.inactive;
+        const countEl = document.getElementById('tab-count-' + r);
+        countEl.className = 'ml-1 w-6 h-6 rounded-lg flex items-center justify-center text-[10px] font-black ' + colors.count_inactive;
+    });
+
+    const activeBtn = document.getElementById('tab-' + role);
+    const activeColors = tabColors[role];
+    activeBtn.className = 'tab-btn flex items-center gap-2 px-5 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ' + activeColors.active;
+    const activeCount = document.getElementById('tab-count-' + role);
+    activeCount.className = 'ml-1 w-6 h-6 rounded-lg flex items-center justify-center text-[10px] font-black ' + activeColors.count_active;
+}
+
 function ouvrirReset(id, name) {
     document.getElementById('reset_user_name').textContent = name;
     document.getElementById('reset_password_input').value = '';
@@ -297,6 +339,5 @@ function toggleConfirmation() {
     const pwd = document.getElementById('modif_password').value;
     document.getElementById('bloc_confirmation').style.display = pwd.length > 0 ? 'block' : 'none';
 }
-
 </script>
 @endsection

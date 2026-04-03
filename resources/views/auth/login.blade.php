@@ -73,7 +73,7 @@
                             {{ ($clinic ?? null)?->name ?? 'MonRDV' }}
                         </h1>
                         <p class="text-blue-400 text-[10px] uppercase font-bold tracking-widest">
-                            Gestion Médicale
+                            Gestion Médicale — <span class="text-orange-400">MnRdv</span>
                         </p>
                     </div>
                 </div>
@@ -110,7 +110,7 @@
             </div>
 
             <p class="text-blue-500 text-[9px] uppercase font-bold tracking-widest">
-                &copy; {{ date('Y') }} {{ ($clinic ?? null)?->name ?? 'MonRDV' }}
+                &copy; {{ date('Y') }} {{ ($clinic ?? null)?->name ?? 'MonRDV' }} — MnRdv
             </p>
         </div>
 
@@ -132,7 +132,7 @@
                     </div>
                 @endif
                 <h1 class="text-blue-900 font-black text-3xl uppercase tracking-tighter italic">
-                    {{ ($clinic ?? null)?->name ?? 'MonRDV' }}
+                    {{ ($clinic ?? null)?->name ?? 'MonRDV' }} <span class="text-orange-500 text-lg">MnRdv</span>
                 </h1>
             </div>
 

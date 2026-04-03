@@ -9,21 +9,45 @@
         </div>
     </div>
 
+    {{-- ONGLETS PAR ACTION --}}
+    @php
+        $actions = [
+            '' => ['label' => 'Tout', 'icon' => 'fa-list', 'color' => 'gray'],
+            'creation' => ['label' => 'Creations', 'icon' => 'fa-plus-circle', 'color' => 'green'],
+            'modification' => ['label' => 'Modifications', 'icon' => 'fa-edit', 'color' => 'blue'],
+            'suppression' => ['label' => 'Suppressions', 'icon' => 'fa-trash-alt', 'color' => 'red'],
+            'annulation' => ['label' => 'Annulations', 'icon' => 'fa-ban', 'color' => 'orange'],
+        ];
+        $currentAction = request('action', '');
+    @endphp
+
+    <div class="flex gap-2 mb-6">
+        @foreach($actions as $actionKey => $actionInfo)
+            @php
+                $params = request()->except(['action', 'page']);
+                if ($actionKey) $params['action'] = $actionKey;
+                $isActive = $currentAction === $actionKey;
+            @endphp
+            <a href="{{ route('activites.index', $params) }}"
+               class="flex items-center gap-2 px-5 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all
+               {{ $isActive ? 'bg-'.$actionInfo['color'].'-500 text-white shadow-lg' : 'bg-gray-50 text-gray-400 hover:bg-gray-100' }}">
+                <i class="fas {{ $actionInfo['icon'] }}"></i>
+                {{ $actionInfo['label'] }}
+            </a>
+        @endforeach
+    </div>
+
     {{-- FILTRES --}}
     <div class="bg-white rounded-2xl shadow-sm border border-gray-50 p-4 mb-6">
         <form action="{{ route('activites.index') }}" method="GET" class="flex items-center gap-4">
+            @if($currentAction)
+                <input type="hidden" name="action" value="{{ $currentAction }}">
+            @endif
             <select name="user_id" class="bg-gray-50 border-none rounded-xl px-4 py-3 text-xs font-bold text-blue-900 min-w-[180px]">
                 <option value="">Tous les utilisateurs</option>
                 @foreach($users as $u)
                     <option value="{{ $u->id }}" {{ request('user_id') == $u->id ? 'selected' : '' }}>{{ $u->name }}</option>
                 @endforeach
-            </select>
-            <select name="action" class="bg-gray-50 border-none rounded-xl px-4 py-3 text-xs font-bold text-blue-900 min-w-[160px]">
-                <option value="">Toutes les actions</option>
-                <option value="creation" {{ request('action') == 'creation' ? 'selected' : '' }}>Création</option>
-                <option value="modification" {{ request('action') == 'modification' ? 'selected' : '' }}>Modification</option>
-                <option value="suppression" {{ request('action') == 'suppression' ? 'selected' : '' }}>Suppression</option>
-                <option value="annulation" {{ request('action') == 'annulation' ? 'selected' : '' }}>Annulation</option>
             </select>
             <input type="date" name="date" value="{{ request('date') }}" class="bg-gray-50 border-none rounded-xl px-4 py-3 text-xs font-bold text-blue-900">
             <button type="submit" class="bg-blue-900 text-white px-6 py-3 rounded-xl font-black uppercase text-[10px]">
@@ -37,6 +61,15 @@
 
     {{-- TABLEAU --}}
     <div class="bg-white rounded-[2.5rem] shadow-sm border border-gray-50 overflow-hidden">
+        @if($currentAction)
+            <div class="px-6 py-4 border-b border-gray-50 flex items-center gap-3">
+                <div class="w-8 h-8 bg-{{ $actions[$currentAction]['color'] }}-500 rounded-xl flex items-center justify-center text-white">
+                    <i class="fas {{ $actions[$currentAction]['icon'] }} text-sm"></i>
+                </div>
+                <h2 class="font-black text-blue-900 text-sm uppercase tracking-wide">{{ $actions[$currentAction]['label'] }}</h2>
+                <span class="bg-{{ $actions[$currentAction]['color'] }}-50 text-{{ $actions[$currentAction]['color'] }}-600 px-2 py-0.5 rounded-lg text-[10px] font-black">{{ $logs->total() }}</span>
+            </div>
+        @endif
         <table class="w-full text-left">
             <thead class="bg-gray-50/50 border-b border-gray-50">
                 <tr class="text-[9px] font-black uppercase text-gray-300">
@@ -44,7 +77,7 @@
                     <th class="p-5">Utilisateur</th>
                     <th class="p-5">Action</th>
                     <th class="p-5">Description</th>
-                    <th class="p-5">Élément</th>
+                    <th class="p-5">Element</th>
                     <th class="p-5">IP</th>
                 </tr>
             </thead>
@@ -68,7 +101,7 @@
                     </td>
                     <td class="p-5">
                         @if($log->action === 'creation')
-                            <span class="bg-green-50 text-green-600 px-3 py-1 rounded-lg text-[10px] font-black uppercase">Création</span>
+                            <span class="bg-green-50 text-green-600 px-3 py-1 rounded-lg text-[10px] font-black uppercase">Creation</span>
                         @elseif($log->action === 'modification')
                             <span class="bg-blue-50 text-blue-600 px-3 py-1 rounded-lg text-[10px] font-black uppercase">Modification</span>
                         @elseif($log->action === 'suppression')
@@ -91,7 +124,7 @@
                 <tr>
                     <td colspan="6" class="p-20 text-center">
                         <i class="fas fa-clipboard-list text-4xl text-gray-200 mb-3"></i>
-                        <p class="text-gray-400 italic text-xs font-bold uppercase">Aucune activité enregistrée</p>
+                        <p class="text-gray-400 italic text-xs font-bold uppercase">Aucune activite enregistree</p>
                     </td>
                 </tr>
                 @endforelse

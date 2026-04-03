@@ -22,17 +22,21 @@ RUN npm install
 # Copier tout le projet
 COPY . .
 
-# Env pour le build
-RUN cp .env.example .env && php artisan key:generate --force
-
-# Build frontend + cache Laravel
-RUN npm run build \
+# Env pour le build + reset le cache des packages dev
+RUN cp .env.example .env \
+    && rm -f bootstrap/cache/packages.php bootstrap/cache/services.php \
     && php artisan package:discover --ansi \
-    && php artisan view:cache
+    && php artisan key:generate --force
+
+# Build frontend
+RUN npm run build
+
+# Cache views seulement (config et routes au runtime avec les vraies variables)
+RUN php artisan view:cache
 
 # Permissions storage
 RUN chmod -R 775 storage bootstrap/cache
 
 EXPOSE 8080
 
-CMD php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=${PORT:-8080}
+CMD ["/bin/sh", "-c", "php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=${PORT:-8080}"]

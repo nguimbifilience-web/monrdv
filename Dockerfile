@@ -1,28 +1,38 @@
-# Utilise l'image PHP officielle avec les outils nécessaires pour Laravel
-FROM php:8.4-fpm
+FROM php:8.4-cli
 
-# Installation des dépendances système
+# Extensions système
 RUN apt-get update && apt-get install -y \
-    libpng-dev \
-    libonig-dev \
-    libxml2-dev \
-    zip \
-    unzip \
-    git \
-    curl
+    libpng-dev libonig-dev libxml2-dev libzip-dev \
+    zip unzip git curl nodejs npm \
+    && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd sockets zip \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Nettoyage du cache
-RUN apt-get clean && rm -rf /var/lib/apt/lists/*
-
-# Installation des extensions PHP
-RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd
-
-# Copie du projet dans le conteneur
-COPY . /var/www
-
-# Installation de Composer
+# Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www
 
-EXPOSE 9000
+# Copier les fichiers de dépendances d'abord (cache Docker)
+COPY composer.json composer.lock ./
+RUN composer install --no-dev --optimize-autoloader --no-scripts --no-interaction
+
+COPY package.json package-lock.json ./
+RUN npm install
+
+# Copier tout le projet
+COPY . .
+
+# Env pour le build
+RUN cp .env.example .env && php artisan key:generate --force
+
+# Build frontend + cache Laravel
+RUN npm run build \
+    && php artisan package:discover --ansi \
+    && php artisan view:cache
+
+# Permissions storage
+RUN chmod -R 775 storage bootstrap/cache
+
+EXPOSE 8080
+
+CMD php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=${PORT:-8080}

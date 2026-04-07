@@ -1,9 +1,0 @@
-# Force Railway à utiliser le Dockerfile
-[phases.setup]
-nixPkgs = []
-
-[phases.build]
-cmds = []
-
-[start]
-cmd = ""

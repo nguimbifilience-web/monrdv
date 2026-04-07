@@ -54,7 +54,18 @@
       "Bash(git remote:*)",
       "Bash(./vendor/bin/sail up:*)",
       "Bash(netsh advfirewall:*)",
-      "Bash(git rm:*)"
+      "Bash(git rm:*)",
+      "Bash(docker login:*)",
+      "Bash(docker build:*)",
+      "Bash(docker push:*)",
+      "Bash(docker-compose ps:*)",
+      "Bash(xargs -I {} basename {})",
+      "Bash(docker stats:*)",
+      "Bash(npm list:*)",
+      "Bash(npm install:*)",
+      "Bash(winget install:*)",
+      "Bash(powershell -Command \"iwr -useb https://raw.githubusercontent.com/nicholasgasior/goup/master/install.sh | iex\")",
+      "Bash(where railway.exe)"
     ]
   }
 }

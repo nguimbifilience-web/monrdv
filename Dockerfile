@@ -3,9 +3,10 @@ FROM php:8.4-cli
 # Extensions système + Redis
 RUN apt-get update && apt-get install -y \
     libpng-dev libonig-dev libxml2-dev libzip-dev \
+    libicu-dev libmagickwand-dev \
     zip unzip git curl nodejs npm supervisor \
-    && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd sockets zip \
-    && pecl install redis && docker-php-ext-enable redis \
+    && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd sockets zip intl \
+    && pecl install redis imagick && docker-php-ext-enable redis imagick \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Composer

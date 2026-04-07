@@ -6,6 +6,8 @@ use App\Models\Medecin;
 use App\Models\Specialite;
 use App\Models\User;
 use App\Models\ActivityLog;
+use App\Http\Requests\StoreMedecinRequest;
+use App\Http\Requests\UpdateMedecinRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -41,17 +43,9 @@ class MedecinController extends Controller
         return view('medecins.create', compact('specialites'));
     }
 
-    public function store(Request $request)
+    public function store(StoreMedecinRequest $request)
     {
-        $validated = $request->validate([
-            'nom'           => 'required',
-            'prenom'        => 'required',
-            'specialite_id' => 'required',
-            'telephone'     => 'nullable',
-            'email'         => 'required|email|unique:users,email',
-            'tarif_heure'   => 'required|numeric|min:0',
-            'heures_mois'   => 'required|integer|min:0',
-        ]);
+        $validated = $request->validated();
 
         // Générer un mot de passe
         $password = Str::random(8);
@@ -99,18 +93,11 @@ class MedecinController extends Controller
     }
 
     // Enregistre les modifications
-    public function update(Request $request, $id)
+    public function update(UpdateMedecinRequest $request, $id)
     {
         $medecin = Medecin::findOrFail($id);
 
-        $validated = $request->validate([
-            'nom'           => 'required',
-            'prenom'        => 'required',
-            'specialite_id' => 'required|exists:specialites,id',
-            'telephone'     => 'nullable',
-            'tarif_heure'   => 'required|numeric|min:0',
-            'heures_mois'   => 'required|integer|min:0',
-        ]);
+        $validated = $request->validated();
 
         $oldValues = $medecin->toArray();
         $medecin->update($validated);

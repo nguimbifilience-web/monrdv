@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Assurance;
 use App\Models\Patient;
+use App\Http\Requests\StoreAssuranceRequest;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -67,29 +68,15 @@ class AssuranceController extends Controller
         return view('assurances.index', compact('assurances', 'total', 'chartData'));
     }
 
-    public function store(Request $request) {
-        $data = $request->validate([
-            'nom' => 'required|string',
-            'type' => 'required|in:publique,privée',
-            'nom_referent' => 'required|string',
-            'taux_couverture' => 'required|numeric',
-            'telephone' => 'required|string',
-            'email' => 'required|email',
-        ]);
+    public function store(StoreAssuranceRequest $request) {
+        $data = $request->validated();
         Assurance::create($data);
         return back()->with('success', 'Partenaire ajouté.');
     }
 
-    public function update(Request $request, $id) {
+    public function update(StoreAssuranceRequest $request, $id) {
         $assurance = Assurance::findOrFail($id);
-        $data = $request->validate([
-            'nom' => 'required|string',
-            'type' => 'required|in:publique,privée',
-            'nom_referent' => 'required|string',
-            'taux_couverture' => 'required|numeric',
-            'telephone' => 'required|string',
-            'email' => 'required|email',
-        ]);
+        $data = $request->validated();
         $assurance->update($data);
         return back()->with('success', 'Contacts mis à jour.');
     }

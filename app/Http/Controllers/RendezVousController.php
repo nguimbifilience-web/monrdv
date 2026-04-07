@@ -7,6 +7,7 @@ use App\Models\Patient;
 use App\Models\Medecin;
 use App\Models\Disponibilite;
 use App\Models\ActivityLog;
+use App\Http\Requests\StoreRendezVousRequest;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 
@@ -83,15 +84,9 @@ class RendezVousController extends Controller
         return view('rendezvous.create', compact('patients', 'medecins', 'patientsJson'));
     }
 
-    public function store(Request $request)
+    public function store(StoreRendezVousRequest $request)
     {
-        $validated = $request->validate([
-            'date_rv'    => 'required|date',
-            'heure_rv'   => 'nullable',
-            'patient_id' => 'required|exists:patients,id',
-            'medecin_id' => 'required|exists:medecins,id',
-            'motif'      => 'nullable|string|max:255',
-        ]);
+        $validated = $request->validated();
 
         // Vérifier si le médecin travaille ce jour
         $travaille = Disponibilite::where('medecin_id', $validated['medecin_id'])

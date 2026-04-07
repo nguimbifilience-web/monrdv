@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Clinic;
 use App\Models\User;
+use App\Http\Requests\StoreClinicRequest;
+use App\Http\Requests\UpdateClinicRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
@@ -96,21 +98,8 @@ class ClinicController extends Controller
         return back()->with('success', "Compte de {$name} supprime.");
     }
 
-    public function store(Request $request)
+    public function store(StoreClinicRequest $request)
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'nullable|email',
-            'phone' => 'nullable|string|max:20',
-            'address' => 'nullable|string|max:255',
-            'logo' => 'nullable|image|mimes:jpg,jpeg,png,svg|max:2048',
-            'primary_color' => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
-            'secondary_color' => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
-            'sidebar_text_color' => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
-            'admin_name' => 'nullable|string|max:255',
-            'admin_email' => 'nullable|required_with:admin_name|email|unique:users,email',
-        ]);
-
         $data = [
             'name' => $request->name,
             'slug' => Str::slug($request->name),
@@ -147,20 +136,8 @@ class ClinicController extends Controller
         return redirect()->route('clinics.index')->with('success', $message);
     }
 
-    public function update(Request $request, Clinic $clinic)
+    public function update(UpdateClinicRequest $request, Clinic $clinic)
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'nullable|email',
-            'phone' => 'nullable|string|max:20',
-            'address' => 'nullable|string|max:255',
-            'logo' => 'nullable|image|mimes:jpg,jpeg,png,svg|max:2048',
-            'primary_color' => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
-            'secondary_color' => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
-            'sidebar_text_color' => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
-            'subscription_expires_at' => 'nullable|date',
-        ]);
-
         $data = [
             'name' => $request->name,
             'slug' => Str::slug($request->name),

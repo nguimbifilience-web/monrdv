@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Specialite;
 use App\Models\Assurance;
+use App\Http\Requests\StoreSpecialiteRequest;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 
@@ -25,12 +26,8 @@ class SpecialiteController extends Controller
         return view('specialites.index', compact('specialites', 'total', 'assurances'));
     }
 
-    public function store(Request $request) {
-        $data = $request->validate([
-            'nom' => 'required|unique:specialites',
-            'icone' => 'nullable|string|max:50',
-            'tarif_consultation' => 'required|numeric|min:0',
-        ]);
+    public function store(StoreSpecialiteRequest $request) {
+        $data = $request->validated();
         Specialite::create($data);
         return back()->with('success', 'Créé.');
     }

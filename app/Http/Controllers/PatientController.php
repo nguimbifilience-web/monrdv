@@ -8,6 +8,8 @@ use App\Models\Medecin;
 use App\Models\Assurance;
 use App\Models\ActivityLog;
 use App\Models\PatientValidationCode;
+use App\Http\Requests\StorePatientRequest;
+use App\Http\Requests\UpdatePatientRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
@@ -40,18 +42,8 @@ class PatientController extends Controller
         return view('patients.create', compact('medecins', 'assurances'));
     }
 
-    public function store(Request $request)
+    public function store(StorePatientRequest $request)
     {
-        $request->validate([
-            'nom' => 'required|string|max:255',
-            'prenom' => 'required|string|max:255',
-            'telephone' => 'required',
-            'email' => 'nullable|email',
-            'est_assure' => 'required|boolean',
-            'assurance_id' => 'nullable|exists:assurances,id',
-            'medecin_id' => 'nullable|exists:medecins,id',
-        ]);
-
         // Créer le compte utilisateur si un email est fourni
         $userId = null;
         if ($request->filled('email')) {
@@ -107,17 +99,8 @@ class PatientController extends Controller
         return view('patients.edit', compact('patient', 'medecins', 'assurances'));
     }
 
-    public function update(Request $request, Patient $patient)
+    public function update(UpdatePatientRequest $request, Patient $patient)
     {
-        $request->validate([
-            'nom' => 'required|string|max:255',
-            'prenom' => 'required|string|max:255',
-            'telephone' => 'required',
-            'est_assure' => 'required|boolean',
-            'assurance_id' => 'nullable|exists:assurances,id',
-            'medecin_id' => 'nullable|exists:medecins,id',
-        ]);
-
         $oldValues = $patient->toArray();
         $patient->update($request->all());
         ActivityLog::log('modification', "Patient modifié : {$patient->nom} {$patient->prenom}", $patient, $oldValues, $request->all());

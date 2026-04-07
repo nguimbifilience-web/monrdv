@@ -6,6 +6,7 @@ use App\Models\Consultation;
 use App\Models\Patient;
 use App\Models\Medecin;
 use App\Models\RendezVous;
+use App\Http\Requests\StoreConsultationRequest;
 use Illuminate\Http\Request;
 
 class ConsultationController extends Controller
@@ -102,16 +103,9 @@ class ConsultationController extends Controller
     /**
      * Enregistre une consultation
      */
-    public function store(Request $request)
+    public function store(StoreConsultationRequest $request)
     {
-        $validated = $request->validate([
-            'patient_id'       => 'required|exists:patients,id',
-            'medecin_id'       => 'required|exists:medecins,id',
-            'est_assure'       => 'required|in:0,1',
-            'montant_total'    => 'required|numeric|min:0',
-            'montant_donne'    => 'required|numeric|min:0',
-            'tarif_specialite' => 'nullable|numeric|min:0',
-        ]);
+        $validated = $request->validated();
 
         $patient = Patient::with('assurance')->findOrFail($validated['patient_id']);
         $medecin = Medecin::with('specialite')->findOrFail($validated['medecin_id']);

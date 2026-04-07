@@ -25,3 +25,5 @@ Thumbs.db
 rr
 .rr.yaml
 nul
+*.sql
+*.sqlite

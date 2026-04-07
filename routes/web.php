@@ -4,7 +4,8 @@ use App\Http\Controllers\{
     ProfileController, DashboardController, MedecinController,
     PatientController, RendezVousController, SpecialiteController,
     AssuranceController, ConsultationController, PatientPortalController,
-    MedecinPortalController, ClinicController, CompteController
+    MedecinPortalController, ClinicController, CompteController,
+    ExportController
 };
 use Illuminate\Support\Facades\Route;
 
@@ -40,7 +41,7 @@ require __DIR__.'/auth.php';
 Route::middleware(['auth', 'clinic'])->group(function () {
 
     // 1. API AJAX Partagées
-    Route::prefix('api')->name('api.')->group(function () {
+    Route::prefix('api')->middleware('throttle:api')->name('api.')->group(function () {
         Route::get('rendezvous/creneaux', [RendezVousController::class, 'creneauxDisponibles'])->name('rendezvous.creneaux');
         Route::get('medecin/{id}/planning', [PatientPortalController::class, 'getDisponibilitesMedecin'])->name('medecin.planning');
     });
@@ -72,6 +73,14 @@ Route::middleware(['auth', 'clinic'])->group(function () {
             Route::get('consultations/recettes-mensuelles', 'recettesMensuelles')->name('consultations.recettes-mensuelles');
             Route::get('consultations/{id}/ticket', 'ticket')->name('consultations.ticket');
             Route::get('api/patients/{id}/info', 'getPatientInfo')->name('api.patient.info');
+        });
+
+        // Exports CSV
+        Route::prefix('exports')->name('exports.')->group(function () {
+            Route::get('patients', [ExportController::class, 'patients'])->name('patients');
+            Route::get('rendezvous', [ExportController::class, 'rendezvous'])->name('rendezvous');
+            Route::get('consultations', [ExportController::class, 'consultations'])->name('consultations');
+            Route::get('recettes', [ExportController::class, 'recettes'])->name('recettes');
         });
 
         // API Staff
@@ -106,7 +115,7 @@ Route::middleware(['auth', 'clinic'])->group(function () {
             Route::get('/dashboard', 'dashboard')->name('dashboard');
             Route::get('/mes-rendezvous', 'mesRendezvous')->name('rendezvous');
             Route::get('/prendre-rdv', 'prendreRendezvous')->name('prendre-rdv');
-            Route::post('/prendre-rdv', 'storeRendezvous')->name('store-rdv');
+            Route::post('/prendre-rdv', 'storeRendezvous')->middleware('throttle:patient-rdv')->name('store-rdv');
             Route::patch('/rendezvous/{id}/annuler', 'annulerRendezvous')->name('annuler-rdv');
             Route::get('/mes-documents', 'mesDocuments')->name('documents');
             Route::post('/mes-documents', 'uploadDocument')->name('documents.upload');

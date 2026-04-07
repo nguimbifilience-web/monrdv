@@ -1,1 +1,9 @@
-# Railway : utiliser le Dockerfile directement
+# Force Railway à utiliser le Dockerfile
+[phases.setup]
+nixPkgs = []
+
+[phases.build]
+cmds = []
+
+[start]
+cmd = ""

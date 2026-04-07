@@ -18,7 +18,7 @@ COPY composer.json composer.lock ./
 RUN composer install --no-dev --optimize-autoloader --no-scripts --no-interaction
 
 COPY package.json package-lock.json ./
-RUN npm install
+RUN npm ci --production=false
 
 # Copier tout le projet
 COPY . .
@@ -32,11 +32,17 @@ RUN cp .env.example .env \
 # Build frontend
 RUN npm run build
 
+# Supprimer les devDependencies node après le build
+RUN rm -rf node_modules
+
 # Cache views seulement (config et routes au runtime avec les vraies variables)
 RUN php artisan view:cache
 
 # OPcache pour la performance en production
 RUN echo "opcache.enable=1\nopcache.memory_consumption=128\nopcache.max_accelerated_files=10000\nopcache.validate_timestamps=0" > /usr/local/etc/php/conf.d/opcache-prod.ini
+
+# PHP production settings
+RUN echo "memory_limit=256M\npost_max_size=64M\nupload_max_filesize=64M\nexpose_php=Off\ndisplay_errors=Off\nlog_errors=On" > /usr/local/etc/php/conf.d/production.ini
 
 # Permissions storage
 RUN chmod -R 775 storage bootstrap/cache
@@ -46,4 +52,5 @@ COPY docker/prod/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 EXPOSE 8080
 
-CMD ["/bin/sh", "-c", "php artisan migrate --force && php artisan config:cache && php artisan route:cache && /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf"]
+# Railway injecte $PORT — le CMD utilise les vraies variables d'env au runtime
+CMD ["/bin/sh", "-c", "php artisan migrate --force && php artisan config:cache && php artisan route:cache && php artisan event:cache && /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf"]

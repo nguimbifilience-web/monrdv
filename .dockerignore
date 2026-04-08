@@ -1,6 +1,9 @@
 node_modules
 vendor
 .git
+
+# Ne jamais exclure le Dockerfile
+!Dockerfile
 .env
 .env.backup
 .env.production

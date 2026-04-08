@@ -24,11 +24,12 @@ RUN npm ci --production=false
 # Copier tout le projet
 COPY . .
 
-# Env pour le build + reset le cache des packages dev
+# Env pour le build uniquement
 RUN cp .env.example .env \
     && rm -f bootstrap/cache/packages.php bootstrap/cache/services.php \
     && php artisan package:discover --ansi \
-    && php artisan key:generate --force
+    && php artisan key:generate --force \
+    && rm -f .env
 
 # Build frontend
 RUN npm run build
@@ -54,4 +55,4 @@ COPY docker/prod/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 EXPOSE 8080
 
 # Railway injecte $PORT — le CMD utilise les vraies variables d'env au runtime
-CMD ["/bin/sh", "-c", "php artisan migrate --force && php artisan config:cache && php artisan route:cache && php artisan event:cache && /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf"]
+CMD ["/bin/sh", "-c", "php artisan migrate --force && php artisan route:cache && php artisan event:cache && /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf"]

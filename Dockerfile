@@ -1,4 +1,5 @@
 FROM php:8.4-cli
+# cache bust v2
 
 # Extensions système + Redis
 RUN apt-get update && apt-get install -y \

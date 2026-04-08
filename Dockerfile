@@ -55,4 +55,4 @@ COPY docker/prod/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 EXPOSE 8080
 
 # Railway injecte $PORT — le CMD utilise les vraies variables d'env au runtime
-CMD ["/bin/sh", "-c", "php artisan migrate --force && php artisan route:cache && php artisan event:cache && /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf"]
+CMD ["/bin/sh", "-c", "echo DB_HOST=$DB_HOST DB_DATABASE=$DB_DATABASE DB_PORT=$DB_PORT && php artisan migrate --force && php artisan route:cache && php artisan event:cache && /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf"]

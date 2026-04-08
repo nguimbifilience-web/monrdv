@@ -1,8 +1,7 @@
 FROM php:8.4-cli
-# cache bust v2
 
-# Extensions système + Redis
-RUN apt-get update && apt-get install -y \
+# Extensions système + Redis — rebuild 20260408
+RUN echo "rebuild-20260408" && apt-get update && apt-get install -y \
     libpng-dev libonig-dev libxml2-dev libzip-dev \
     libicu-dev libmagickwand-dev \
     zip unzip git curl nodejs npm supervisor \

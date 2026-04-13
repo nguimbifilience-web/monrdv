@@ -3,6 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Clinic;
+use App\Models\Medecin;
+use App\Models\Patient;
+use App\Models\RendezVous;
+use App\Models\Specialite;
+use App\Models\Assurance;
 use App\Models\User;
 use App\Http\Requests\StoreClinicRequest;
 use App\Http\Requests\UpdateClinicRequest;
@@ -13,10 +18,80 @@ use Illuminate\Support\Str;
 
 class ClinicController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $clinics = Clinic::withCount(['users', 'patients', 'medecins'])->latest()->get();
-        return view('clinics.index', compact('clinics'));
+        $query = Clinic::withCount(['medecins']);
+
+        if ($search = $request->get('q')) {
+            $query->where('name', 'like', "%{$search}%");
+        }
+        if ($status = $request->get('status')) {
+            match ($status) {
+                'active' => $query->where('is_active', true)->where('is_blocked', false),
+                'suspended' => $query->where(fn ($q) => $q->where('is_active', false)->orWhere('is_blocked', true)),
+                default => null,
+            };
+        }
+        if ($city = $request->get('city')) {
+            $query->where('city', $city);
+        }
+
+        $clinics = $query->orderBy('name')->get();
+        $cities = Clinic::whereNotNull('city')->distinct()->pluck('city');
+
+        return view('clinics.index', compact('clinics', 'cities'));
+    }
+
+    public function show(Request $request, Clinic $clinic)
+    {
+        $tab = $request->get('tab', 'apercu');
+
+        $clinic->loadCount(['medecins', 'patients', 'rendezvous', 'specialites', 'assurances']);
+
+        $data = ['clinic' => $clinic, 'tab' => $tab];
+
+        switch ($tab) {
+            case 'medecins':
+                $data['medecins'] = Medecin::withoutGlobalScopes()
+                    ->where('clinic_id', $clinic->id)
+                    ->with('specialite')
+                    ->orderBy('nom')->paginate(20)->withQueryString();
+                break;
+            case 'patients':
+                $data['patients'] = Patient::withoutGlobalScopes()
+                    ->where('clinic_id', $clinic->id)
+                    ->orderBy('nom')->paginate(20)->withQueryString();
+                break;
+            case 'rendezvous':
+                $data['rendezvous'] = RendezVous::withoutGlobalScopes()
+                    ->where('clinic_id', $clinic->id)
+                    ->with(['patient', 'medecin'])
+                    ->orderByDesc('date_rv')->paginate(20)->withQueryString();
+                break;
+            case 'specialites':
+                $data['specialites'] = Specialite::withoutGlobalScopes()
+                    ->where('clinic_id', $clinic->id)
+                    ->orderBy('nom')->get();
+                break;
+            case 'assurances':
+                $data['assurances'] = Assurance::withoutGlobalScopes()
+                    ->where('clinic_id', $clinic->id)
+                    ->orderBy('nom')->get();
+                break;
+            case 'apercu':
+            default:
+                $data['revenueMonth'] = \App\Models\Consultation::withoutGlobalScopes()
+                    ->where('clinic_id', $clinic->id)
+                    ->whereBetween('created_at', [now()->startOfMonth(), now()->endOfMonth()])
+                    ->sum('montant_patient');
+                $data['rdvMonth'] = RendezVous::withoutGlobalScopes()
+                    ->where('clinic_id', $clinic->id)
+                    ->whereBetween('date_rv', [now()->startOfMonth(), now()->endOfMonth()])
+                    ->count();
+                break;
+        }
+
+        return view('clinics.show', $data);
     }
 
     public function users(Clinic $clinic)
@@ -106,6 +181,8 @@ class ClinicController extends Controller
             'email' => $request->email,
             'phone' => $request->phone,
             'address' => $request->address,
+            'city' => $request->city,
+            'plan_id' => $request->plan_id,
             'primary_color' => $request->primary_color,
             'secondary_color' => $request->secondary_color,
             'sidebar_text_color' => $request->sidebar_text_color,
@@ -144,6 +221,8 @@ class ClinicController extends Controller
             'email' => $request->email,
             'phone' => $request->phone,
             'address' => $request->address,
+            'city' => $request->city,
+            'plan_id' => $request->plan_id,
             'primary_color' => $request->primary_color,
             'secondary_color' => $request->secondary_color,
             'sidebar_text_color' => $request->sidebar_text_color,
@@ -207,9 +286,15 @@ class ClinicController extends Controller
         return redirect()->route('clinics.index')->with('success', "Clinique {$status}.");
     }
 
-    public function destroy(Clinic $clinic)
+    public function destroy(Request $request, Clinic $clinic)
     {
+        // Garde-fou : l'utilisateur doit retaper le nom exact de la clinique
+        if ($request->filled('confirm_name') && $request->confirm_name !== $clinic->name) {
+            return back()->withErrors(['confirm_name' => 'Le nom saisi ne correspond pas à la clinique.']);
+        }
+
+        $name = $clinic->name;
         $clinic->delete();
-        return redirect()->route('clinics.index')->with('success', 'Clinique supprimée.');
+        return redirect()->route('clinics.index')->with('success', "Clinique « {$name} » supprimée.");
     }
 }

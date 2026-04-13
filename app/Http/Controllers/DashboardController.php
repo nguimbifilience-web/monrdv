@@ -15,9 +15,9 @@ class DashboardController extends Controller
     {
         $user = auth()->user();
 
-        // Super admin → dashboard dédié avec stats par clinique
+        // Super admin → dashboard dédié (vue par clinique)
         if ($user->isSuperAdmin()) {
-            return $this->superAdminDashboard();
+            return redirect()->route('superadmin.dashboard');
         }
 
         $nbRendezvous = RendezVous::whereDate('date_rv', today())->count();
@@ -58,30 +58,4 @@ class DashboardController extends Controller
         return view('activites.index', compact('logs', 'users'));
     }
 
-    private function superAdminDashboard()
-    {
-        $clinics = Clinic::withCount(['users', 'patients', 'medecins', 'rendezvous', 'consultations'])
-            ->orderBy('name')
-            ->get();
-
-        $stats = [
-            'total_clinics' => $clinics->count(),
-            'active_clinics' => $clinics->where('is_active', true)->count(),
-            'total_users' => $clinics->sum('users_count'),
-            'total_patients' => $clinics->sum('patients_count'),
-            'total_medecins' => $clinics->sum('medecins_count'),
-            'total_rdv_today' => RendezVous::withoutGlobalScopes()->whereDate('date_rv', today())->count(),
-        ];
-
-        // Tous les comptes groupés par clinique
-        $comptes = User::withoutGlobalScopes()
-            ->where('role', '!=', 'super_admin')
-            ->with('clinic')
-            ->orderBy('clinic_id')
-            ->orderByRaw("FIELD(role, 'admin', 'secretaire', 'medecin', 'patient')")
-            ->orderBy('name')
-            ->get();
-
-        return view('dashboard-superadmin', compact('clinics', 'stats', 'comptes'));
-    }
 }

@@ -8,9 +8,10 @@ use Illuminate\Support\Facades\Storage;
 class Clinic extends Model
 {
     protected $fillable = [
-        'name', 'slug', 'email', 'phone', 'address',
+        'name', 'slug', 'email', 'phone', 'address', 'city',
         'logo_path', 'primary_color', 'secondary_color', 'sidebar_text_color',
-        'is_active', 'is_blocked', 'blocked_reason', 'blocked_at', 'subscription_expires_at',
+        'is_active', 'is_blocked', 'blocked_reason', 'blocked_at',
+        'plan_id', 'subscription_started_at', 'subscription_expires_at',
     ];
 
     protected function casts(): array
@@ -19,8 +20,25 @@ class Clinic extends Model
             'is_active' => 'boolean',
             'is_blocked' => 'boolean',
             'blocked_at' => 'datetime',
+            'subscription_started_at' => 'date',
             'subscription_expires_at' => 'date',
         ];
+    }
+
+    public function plan()
+    {
+        return $this->belongsTo(Plan::class);
+    }
+
+    public function getSubscriptionStatusAttribute(): string
+    {
+        if (!$this->subscription_expires_at) {
+            return 'none';
+        }
+        $days = now()->startOfDay()->diffInDays($this->subscription_expires_at, false);
+        if ($days < 0) return 'expired';
+        if ($days <= 15) return 'expiring';
+        return 'active';
     }
 
     public function getLogoUrlAttribute(): ?string

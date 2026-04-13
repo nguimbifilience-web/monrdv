@@ -1,8 +1,74 @@
-<IfModule mod_rewrite.c>
-    <IfModule mod_negotiation.c>
-        Options -MultiViews -Indexes
-    </IfModule>
+# =============================================================================
+#  MonRDV - .htaccess racine (htdocs/) - Securise
+# =============================================================================
 
+# --- Desactivation de l'affichage des index de dossiers et MultiViews ---
+<IfModule mod_negotiation.c>
+    Options -MultiViews
+</IfModule>
+Options -Indexes
+
+# --- Bloquer les methodes HTTP inutilisees (TRACE, TRACK, CONNECT) ---
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteCond %{REQUEST_METHOD} ^(TRACE|TRACK|CONNECT) [NC]
+    RewriteRule .* - [F,L]
+</IfModule>
+
+# --- Bloquer les User-Agents de scanners malveillants ---
+<IfModule mod_rewrite.c>
+    RewriteCond %{HTTP_USER_AGENT} (nikto|sqlmap|masscan|nmap|fimap|nessus|whatweb|Openvas|jbrofuzz|libwhisker|webshag|w3af|arachni|x-scanner|scanner|skipfish|ZmEu|Morfeus|zgrab|gobuster|dirbuster|wfuzz|hydra|Wprecon) [NC,OR]
+    RewriteCond %{HTTP_USER_AGENT} ^$
+    RewriteRule .* - [F,L]
+</IfModule>
+
+# --- Bloquer l'acces aux fichiers sensibles ---
+<FilesMatch "(?i)^(\.env.*|\.git.*|composer\.(json|lock)|package(-lock)?\.json|webpack\.mix\.js|vite\.config\.js|tailwind\.config\.js|postcss\.config\.js|phpunit\.xml.*|artisan|server\.php|\.htaccess|\.htpasswd|\.user\.ini|README.*|CHANGELOG.*|LICENSE.*|.*\.(log|bak|backup|old|orig|swp|tmp|sql|sqlite|sqlite3|yml|yaml|ini|cnf|conf|config|env|json|lock|md))$">
+    Require all denied
+</FilesMatch>
+
+# --- Bloquer les dossiers cachees (.git/, .svn/, etc.) ---
+RedirectMatch 404 /\.git
+RedirectMatch 404 /\.svn
+RedirectMatch 404 /\.hg
+RedirectMatch 404 /\.bzr
+
+# --- Headers HTTP de securite ---
+<IfModule mod_headers.c>
+    # Force HTTPS pendant 1 an, inclut les sous-domaines, eligible preload
+    Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+
+    # Empeche le clickjacking (l'app ne doit etre integree dans aucune iframe)
+    Header always set X-Frame-Options "DENY"
+
+    # Empeche le MIME type sniffing
+    Header always set X-Content-Type-Options "nosniff"
+
+    # Limite les informations envoyees dans le Referer
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+
+    # Desactive les fonctionnalites navigateur potentiellement dangereuses
+    Header always set Permissions-Policy "geolocation=(), microphone=(), camera=(), payment=(), usb=(), magnetometer=(), gyroscope=(), accelerometer=()"
+
+    # Cross-Origin policies (bloque les attaques cross-origin)
+    Header always set Cross-Origin-Opener-Policy "same-origin"
+    Header always set Cross-Origin-Resource-Policy "same-site"
+
+    # Masquer la version de PHP/Laravel
+    Header unset X-Powered-By
+    Header unset Server
+    Header always unset X-Powered-By
+</IfModule>
+
+# --- Cacher la version de PHP cote serveur ---
+<IfModule mod_php.c>
+    php_flag expose_php Off
+</IfModule>
+
+# =============================================================================
+#  Routing Laravel
+# =============================================================================
+<IfModule mod_rewrite.c>
     RewriteEngine On
 
     # Handle Authorization Header

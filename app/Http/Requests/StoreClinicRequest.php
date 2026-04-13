@@ -13,6 +13,8 @@ class StoreClinicRequest extends FormRequest
             'email' => 'nullable|email|max:255',
             'phone' => 'nullable|string|max:20',
             'address' => 'nullable|string|max:255',
+            'city' => 'nullable|string|max:100',
+            'plan_id' => 'nullable|exists:plans,id',
             'logo' => 'nullable|image|mimes:jpg,jpeg,png,svg|max:2048',
             'primary_color' => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'secondary_color' => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],

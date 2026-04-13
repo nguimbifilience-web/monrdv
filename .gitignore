@@ -27,3 +27,11 @@ rr
 nul
 *.sql
 *.sqlite
+
+# Deploy artifacts (tokens/zips, regenerables)
+/deploy/*.zip
+/deploy/migrate.php
+/deploy/fix-cache.php
+
+# Env backups
+.env.*

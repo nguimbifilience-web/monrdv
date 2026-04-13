@@ -7,6 +7,13 @@ use App\Http\Controllers\{
     MedecinPortalController, ClinicController, CompteController,
     ExportController
 };
+use App\Http\Controllers\SuperAdmin\{
+    DashboardController as SuperAdminDashboardController,
+    UserController as SuperAdminUserController,
+    BillingController as SuperAdminBillingController,
+    SettingController as SuperAdminSettingController,
+    SecurityController as SuperAdminSecurityController
+};
 use Illuminate\Support\Facades\Route;
 
 // --- Routes Publiques ---
@@ -136,27 +143,80 @@ Route::middleware(['auth', 'clinic'])->group(function () {
 
 });
 
-// 6. SUPER ADMIN (Hors middleware 'clinic' car gère toutes les cliniques)
-Route::middleware(['auth', 'super_admin'])->prefix('super-admin')->name('clinics.')->group(function () {
-    Route::resource('cliniques', ClinicController::class)->parameters(['cliniques' => 'clinic'])->names([
-        'index' => 'index',
-        'create' => 'create',
-        'store' => 'store',
-        'show' => 'show',
-        'edit' => 'edit',
-        'update' => 'update',
-        'destroy' => 'destroy',
-    ]);
-    Route::patch('/cliniques/{clinic}/toggle', [ClinicController::class, 'toggleActive'])->name('toggle');
-    Route::patch('/cliniques/{clinic}/block', [ClinicController::class, 'block'])->name('block');
-    Route::patch('/cliniques/{clinic}/unblock', [ClinicController::class, 'unblock'])->name('unblock');
-    Route::delete('/cliniques/{clinic}/logo', [ClinicController::class, 'removeLogo'])->name('logo.destroy');
+// =========================================================
+// 6. SUPER ADMIN (hors middleware 'clinic', gère toutes les cliniques)
+// =========================================================
+Route::middleware(['auth', 'super_admin'])->prefix('super-admin')->group(function () {
 
-    Route::prefix('cliniques/{clinic}')->group(function () {
-        Route::get('/utilisateurs', [ClinicController::class, 'users'])->name('users');
-        Route::post('/utilisateurs', [ClinicController::class, 'storeUser'])->name('users.store');
-        Route::put('/utilisateurs/{user}', [ClinicController::class, 'updateUser'])->name('users.update');
-        Route::patch('/utilisateurs/{user}/reset', [ClinicController::class, 'resetUserPassword'])->name('users.reset');
-        Route::delete('/utilisateurs/{user}', [ClinicController::class, 'destroyUser'])->name('users.destroy');
+    // --- Dashboard Super Admin (vue par clinique) ---
+    Route::get('/dashboard', [SuperAdminDashboardController::class, 'index'])->name('superadmin.dashboard');
+
+    // --- Cliniques (CRUD + détail avec onglets) — noms clinics.* conservés ---
+    Route::prefix('cliniques')->name('clinics.')->group(function () {
+        Route::get('/', [ClinicController::class, 'index'])->name('index');
+        Route::post('/', [ClinicController::class, 'store'])->name('store');
+        Route::get('/{clinic}', [ClinicController::class, 'show'])->name('show');
+        Route::put('/{clinic}', [ClinicController::class, 'update'])->name('update');
+        Route::delete('/{clinic}', [ClinicController::class, 'destroy'])->name('destroy');
+        Route::patch('/{clinic}/toggle', [ClinicController::class, 'toggleActive'])->name('toggle');
+        Route::patch('/{clinic}/block', [ClinicController::class, 'block'])->name('block');
+        Route::patch('/{clinic}/unblock', [ClinicController::class, 'unblock'])->name('unblock');
+        Route::delete('/{clinic}/logo', [ClinicController::class, 'removeLogo'])->name('logo.destroy');
+
+        // Gestion des users scopée à une clinique (accessible depuis détail clinique)
+        Route::get('/{clinic}/utilisateurs', [ClinicController::class, 'users'])->name('users');
+        Route::post('/{clinic}/utilisateurs', [ClinicController::class, 'storeUser'])->name('users.store');
+        Route::put('/{clinic}/utilisateurs/{user}', [ClinicController::class, 'updateUser'])->name('users.update');
+        Route::patch('/{clinic}/utilisateurs/{user}/reset', [ClinicController::class, 'resetUserPassword'])->name('users.reset');
+        Route::delete('/{clinic}/utilisateurs/{user}', [ClinicController::class, 'destroyUser'])->name('users.destroy');
+    });
+
+    // --- Sections Super Admin globales ---
+    Route::name('superadmin.')->group(function () {
+
+        // Utilisateurs globaux
+        Route::prefix('utilisateurs')->name('users.')->group(function () {
+            Route::get('/', [SuperAdminUserController::class, 'index'])->name('index');
+            Route::post('/', [SuperAdminUserController::class, 'store'])->name('store');
+            Route::put('/{user}', [SuperAdminUserController::class, 'update'])->name('update');
+            Route::patch('/{user}/assign', [SuperAdminUserController::class, 'assignClinic'])->name('assign');
+            Route::patch('/{user}/reset', [SuperAdminUserController::class, 'resetPassword'])->name('reset');
+            Route::delete('/{user}', [SuperAdminUserController::class, 'destroy'])->name('destroy');
+        });
+
+        // Facturation
+        Route::prefix('facturation')->name('billing.')->group(function () {
+            Route::get('/', [SuperAdminBillingController::class, 'index'])->name('index');
+            Route::put('/{clinic}', [SuperAdminBillingController::class, 'updateSubscription'])->name('update');
+            Route::get('/plans', [SuperAdminBillingController::class, 'plans'])->name('plans');
+            Route::post('/plans', [SuperAdminBillingController::class, 'storePlan'])->name('plans.store');
+            Route::put('/plans/{plan}', [SuperAdminBillingController::class, 'updatePlan'])->name('plans.update');
+            Route::delete('/plans/{plan}', [SuperAdminBillingController::class, 'destroyPlan'])->name('plans.destroy');
+        });
+
+        // Paramètres globaux
+        Route::prefix('parametres')->name('settings.')->group(function () {
+            Route::get('/specialites', [SuperAdminSettingController::class, 'specialites'])->name('specialites');
+            Route::post('/specialites', [SuperAdminSettingController::class, 'storeSpecialite'])->name('specialites.store');
+            Route::put('/specialites/{specialite}', [SuperAdminSettingController::class, 'updateSpecialite'])->name('specialites.update');
+            Route::delete('/specialites/{specialite}', [SuperAdminSettingController::class, 'destroySpecialite'])->name('specialites.destroy');
+
+            Route::get('/assurances', [SuperAdminSettingController::class, 'assurances'])->name('assurances');
+            Route::post('/assurances', [SuperAdminSettingController::class, 'storeAssurance'])->name('assurances.store');
+            Route::put('/assurances/{assurance}', [SuperAdminSettingController::class, 'updateAssurance'])->name('assurances.update');
+            Route::delete('/assurances/{assurance}', [SuperAdminSettingController::class, 'destroyAssurance'])->name('assurances.destroy');
+
+            Route::get('/systeme', [SuperAdminSettingController::class, 'system'])->name('system');
+            Route::put('/systeme', [SuperAdminSettingController::class, 'updateSystem'])->name('system.update');
+
+            Route::get('/apparence', [SuperAdminSettingController::class, 'appearance'])->name('appearance');
+            Route::put('/apparence', [SuperAdminSettingController::class, 'updateAppearance'])->name('appearance.update');
+        });
+
+        // Sécurité
+        Route::prefix('securite')->name('security.')->group(function () {
+            Route::get('/logs', [SuperAdminSecurityController::class, 'logs'])->name('logs');
+            Route::get('/acces', [SuperAdminSecurityController::class, 'access'])->name('access');
+        });
     });
 });    

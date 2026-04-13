@@ -1,15 +1,15 @@
-<div class="w-64 h-screen flex flex-col shadow-2xl" style="background-color: var(--clinic-primary)">
-    <div class="p-8">
-        <div class="flex items-center gap-3">
+<div class="w-72 md:w-64 h-screen flex flex-col shadow-2xl overflow-y-auto" style="background-color: var(--clinic-primary)">
+    <div class="p-6 md:p-8 flex items-center justify-between">
+        <div class="flex items-center gap-3 min-w-0">
             @if($clinicLogoUrl ?? false)
-                <img src="{{ $clinicLogoUrl }}" alt="{{ $clinicName }}" class="w-10 h-10 rounded-xl object-cover shadow-lg">
+                <img src="{{ $clinicLogoUrl }}" alt="{{ $clinicName }}" class="w-10 h-10 rounded-xl object-cover shadow-lg shrink-0">
             @else
-                <div class="w-10 h-10 rounded-xl flex items-center justify-center shadow-lg" style="background-color: var(--clinic-secondary)">
+                <div class="w-10 h-10 rounded-xl flex items-center justify-center shadow-lg shrink-0" style="background-color: var(--clinic-secondary)">
                     <span class="font-black text-sm italic tracking-tighter" style="color: var(--clinic-sidebar-text)">{{ strtoupper(substr($clinicName ?? 'M', 0, 2)) }}</span>
                 </div>
             @endif
-            <div>
-                <h1 class="font-black text-2xl uppercase tracking-tighter italic" style="color: var(--clinic-sidebar-text)">
+            <div class="min-w-0">
+                <h1 class="font-black text-xl md:text-2xl uppercase tracking-tighter italic truncate" style="color: var(--clinic-sidebar-text)">
                     {{ $clinicName ?? 'MonRDV' }}
                 </h1>
                 <p class="text-[10px] uppercase font-bold tracking-widest" style="color: var(--clinic-sidebar-text); opacity: 0.5;">
@@ -17,6 +17,9 @@
                 </p>
             </div>
         </div>
+        <button type="button" onclick="closeSidebar()" class="md:hidden w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/10 shrink-0" style="color: var(--clinic-sidebar-text)">
+            <i class="fas fa-times"></i>
+        </button>
     </div>
 
     <nav class="flex-1 px-4 space-y-2">
@@ -117,7 +120,7 @@
 
     </nav>
 
-    <div class="p-8 border-t" style="border-color: rgba(255,255,255,0.1);">
+    <div class="p-6 md:p-8 border-t shrink-0" style="border-color: rgba(255,255,255,0.1);">
         <a href="{{ route('profile.edit') }}" class="flex items-center gap-2 hover:opacity-80 transition-colors mb-4 text-[10px] font-bold uppercase tracking-widest" style="color: var(--clinic-sidebar-text); opacity: 0.4;">
             <i class="fas fa-user-cog"></i> Mon Profil
         </a>

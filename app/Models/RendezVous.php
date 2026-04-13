@@ -24,6 +24,10 @@ class RendezVous extends Model
         'medecin_id'
     ];
 
+    protected $casts = [
+        'date_rv' => 'date',
+    ];
+
     public function patient()
     {
         return $this->belongsTo(Patient::class);

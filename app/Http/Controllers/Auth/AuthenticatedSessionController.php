@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Models\ActivityLog;
 use App\Models\Clinic;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -28,6 +29,8 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
+        ActivityLog::log('connexion', "Connexion de {$request->input('email')}", auth()->user());
+
         return match(auth()->user()->role) {
             'medecin' => redirect()->intended(route('medecin.dashboard')),
             'patient' => redirect()->intended(route('patient.dashboard')),
@@ -37,6 +40,10 @@ class AuthenticatedSessionController extends Controller
 
     public function destroy(Request $request): RedirectResponse
     {
+        if ($user = $request->user()) {
+            ActivityLog::log('deconnexion', "Deconnexion de {$user->email}", $user);
+        }
+
         Auth::guard('web')->logout();
 
         $request->session()->invalidate();

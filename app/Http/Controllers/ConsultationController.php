@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ActivityLog;
 use App\Models\Consultation;
 use App\Models\Patient;
 use App\Models\Medecin;
@@ -139,6 +140,12 @@ class ConsultationController extends Controller
             'montant_donne'    => $montantDonne,
             'montant_rendu'    => max(0, $montantRendu),
         ]);
+
+        ActivityLog::log(
+            'creation',
+            "Consultation enregistree : {$patient->nom} {$patient->prenom} avec Dr. {$medecin->nom} - {$montantPatient} F",
+            $consultation
+        );
 
         if ($request->input('action') === 'print') {
             return redirect()->route('consultations.ticket', $consultation->id);

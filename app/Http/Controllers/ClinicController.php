@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ActivityLog;
 use App\Models\Clinic;
 use App\Models\Medecin;
 use App\Models\Patient;
@@ -116,7 +117,7 @@ class ClinicController extends Controller
 
         $password = Str::random(8);
 
-        User::withoutGlobalScopes()->create([
+        $newUser = User::withoutGlobalScopes()->create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($password),
@@ -124,6 +125,12 @@ class ClinicController extends Controller
             'clinic_id' => $clinic->id,
             'email_verified_at' => now(),
         ]);
+
+        ActivityLog::log(
+            'creation',
+            "Super Admin : compte {$request->role} cree pour {$request->email} dans clinique {$clinic->name}",
+            $newUser
+        );
 
         return back()->with('success', "Compte cree ! Identifiants : {$request->email} / {$password}");
     }
@@ -138,7 +145,16 @@ class ClinicController extends Controller
             'role' => 'required|in:admin,secretaire,medecin,patient',
         ]);
 
+        $oldValues = $user->only(['name', 'email', 'role']);
         $user->update($request->only('name', 'email', 'role'));
+
+        ActivityLog::log(
+            'modification',
+            "Super Admin : compte {$user->email} modifie dans clinique {$clinic->name}",
+            $user,
+            $oldValues,
+            $user->only(['name', 'email', 'role'])
+        );
 
         return back()->with('success', "Compte de {$user->name} mis a jour.");
     }
@@ -158,6 +174,12 @@ class ClinicController extends Controller
             'password' => Hash::make($password),
         ]);
 
+        ActivityLog::log(
+            'modification',
+            "Super Admin : mot de passe reinitialise pour {$user->email} (clinique {$clinic->name})",
+            $user
+        );
+
         return back()->with('reset_password', json_encode([
             'name' => $user->name,
             'email' => $user->email,
@@ -169,6 +191,12 @@ class ClinicController extends Controller
     {
         $user = User::withoutGlobalScopes()->where('clinic_id', $clinic->id)->findOrFail($userId);
         $name = $user->name;
+        $email = $user->email;
+        ActivityLog::log(
+            'suppression',
+            "Super Admin : compte {$email} supprime de clinique {$clinic->name}",
+            $user
+        );
         $user->delete();
         return back()->with('success', "Compte de {$name} supprime.");
     }
@@ -193,6 +221,8 @@ class ClinicController extends Controller
         }
 
         $clinic = Clinic::create($data);
+
+        ActivityLog::log('creation', "Super Admin : clinique « {$clinic->name} » creee", $clinic);
 
         $message = "Clinique « {$clinic->name} » créée.";
 
@@ -265,6 +295,12 @@ class ClinicController extends Controller
             'blocked_at' => now(),
         ]);
 
+        ActivityLog::log(
+            'modification',
+            "Super Admin : clinique « {$clinic->name} » bloquee - motif : {$request->blocked_reason}",
+            $clinic
+        );
+
         return redirect()->route('clinics.index')->with('success', "Clinique « {$clinic->name} » bloquée.");
     }
 
@@ -276,6 +312,8 @@ class ClinicController extends Controller
             'blocked_at' => null,
         ]);
 
+        ActivityLog::log('modification', "Super Admin : clinique « {$clinic->name} » debloquee", $clinic);
+
         return redirect()->route('clinics.index')->with('success', "Clinique « {$clinic->name} » débloquée.");
     }
 
@@ -283,6 +321,13 @@ class ClinicController extends Controller
     {
         $clinic->update(['is_active' => !$clinic->is_active]);
         $status = $clinic->is_active ? 'activée' : 'désactivée';
+
+        ActivityLog::log(
+            'modification',
+            "Super Admin : clinique « {$clinic->name} » {$status}",
+            $clinic
+        );
+
         return redirect()->route('clinics.index')->with('success', "Clinique {$status}.");
     }
 
@@ -294,6 +339,7 @@ class ClinicController extends Controller
         }
 
         $name = $clinic->name;
+        ActivityLog::log('suppression', "Super Admin : clinique « {$name} » SUPPRIMEE", $clinic);
         $clinic->delete();
         return redirect()->route('clinics.index')->with('success', "Clinique « {$name} » supprimée.");
     }

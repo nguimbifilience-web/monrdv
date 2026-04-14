@@ -2,9 +2,9 @@
 
 namespace Database\Factories;
 
+use App\Models\Clinic;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
 /**
@@ -12,23 +12,23 @@ use Illuminate\Support\Str;
  */
 class UserFactory extends Factory
 {
-    /**
-     * The current password being used by the factory.
-     */
-    protected static ?string $password;
-
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
     public function definition(): array
     {
+        // Le cast 'password' => 'hashed' sur User assure le hash automatique,
+        // ne pas pre-hasher ici (sinon double hash et Hash::check echoue).
+        // clinic_id est requis : ClinicScope global filtre par clinique de
+        // l'utilisateur authentifie, sans clinique aucune requete ne trouve rien.
         return [
             'name' => fake()->name(),
             'email' => fake()->unique()->safeEmail(),
             'email_verified_at' => now(),
-            'password' => static::$password ??= Hash::make('password'),
+            'password' => 'password',
+            'role' => 'admin',
+            'clinic_id' => fn () => Clinic::create([
+                'name' => 'Factory Clinic ' . Str::random(4),
+                'slug' => 'factory-' . Str::random(6),
+                'is_active' => true,
+            ])->id,
             'remember_token' => Str::random(10),
         ];
     }

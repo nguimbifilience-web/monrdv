@@ -31,7 +31,7 @@ class MedecinController extends Controller
             $query->where('specialite_id', $request->specialite_id);
         }
 
-        $medecins = $query->orderBy('id', 'desc')->get();
+        $medecins = $query->orderBy('id', 'desc')->paginate(20)->withQueryString();
         $specialites = Specialite::orderBy('nom')->get();
 
         return view('medecins.index', compact('medecins', 'specialites'));
@@ -136,7 +136,7 @@ class MedecinController extends Controller
             $query->where('specialite_id', $request->specialite_id);
         }
 
-        $medecins = $query->orderBy('id', 'desc')->get();
+        $medecins = $query->orderBy('id', 'desc')->limit(50)->get();
 
         return response()->json($medecins->map(function ($m) {
             return [

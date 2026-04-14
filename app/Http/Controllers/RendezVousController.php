@@ -24,9 +24,9 @@ class RendezVousController extends Controller
 
         $rdvDepasses = RendezVous::where('statut', 'en_attente')
             ->where(function ($q) use ($today, $heure) {
-                $q->where('date_rv', '<', $today)
+                $q->whereDate('date_rv', '<', $today)
                    ->orWhere(function ($q2) use ($today, $heure) {
-                       $q2->where('date_rv', $today)->where('heure_rv', '<', $heure);
+                       $q2->whereDate('date_rv', $today)->where('heure_rv', '<', $heure);
                    });
             })->get();
 
@@ -41,6 +41,8 @@ class RendezVousController extends Controller
 
     public function index(Request $request)
     {
+        $this->authorize('viewAny', RendezVous::class);
+
         $this->updateStatutsDepasses();
 
         $query = RendezVous::with(['patient.assurance', 'medecin.specialite', 'consultation']);
@@ -76,6 +78,8 @@ class RendezVousController extends Controller
 
     public function create()
     {
+        $this->authorize('create', RendezVous::class);
+
         $patients = Patient::orderBy('nom')->get();
         $medecins = Medecin::with('specialite')->orderBy('nom')->get();
         $patientsJson = $patients->map(function ($p) {
@@ -86,11 +90,13 @@ class RendezVousController extends Controller
 
     public function store(StoreRendezVousRequest $request)
     {
+        $this->authorize('create', RendezVous::class);
+
         $validated = $request->validated();
 
         // Vérifier si le médecin travaille ce jour
         $travaille = Disponibilite::where('medecin_id', $validated['medecin_id'])
-            ->where('date_travail', $validated['date_rv'])
+            ->whereDate('date_travail', $validated['date_rv'])
             ->exists();
 
         if (!$travaille) {
@@ -99,7 +105,7 @@ class RendezVousController extends Controller
 
         // Vérifier la limite de 15 RDV par jour
         $nbRdvJour = RendezVous::where('medecin_id', $validated['medecin_id'])
-            ->where('date_rv', $validated['date_rv'])
+            ->whereDate('date_rv', $validated['date_rv'])
             ->where('statut', '!=', 'annule')
             ->count();
 
@@ -123,6 +129,7 @@ class RendezVousController extends Controller
     public function edit($id)
     {
         $rendezvous = RendezVous::findOrFail($id);
+        $this->authorize('update', $rendezvous);
         $patients = Patient::orderBy('nom')->get();
         $medecins = Medecin::with('specialite')->orderBy('nom')->get();
 
@@ -131,6 +138,9 @@ class RendezVousController extends Controller
 
     public function update(Request $request, $id)
     {
+        $rendezvous = RendezVous::findOrFail($id);
+        $this->authorize('update', $rendezvous);
+
         $validated = $request->validate([
             'date_rv'    => 'required|date',
             'heure_rv'   => 'required',
@@ -141,7 +151,7 @@ class RendezVousController extends Controller
 
         // Vérifier si le médecin travaille ce jour
         $travaille = Disponibilite::where('medecin_id', $validated['medecin_id'])
-            ->where('date_travail', $validated['date_rv'])
+            ->whereDate('date_travail', $validated['date_rv'])
             ->exists();
 
         if (!$travaille) {
@@ -149,7 +159,7 @@ class RendezVousController extends Controller
         }
 
         $doublePatient = RendezVous::where('patient_id', $validated['patient_id'])
-            ->where('date_rv', $validated['date_rv'])
+            ->whereDate('date_rv', $validated['date_rv'])
             ->where('heure_rv', $validated['heure_rv'])
             ->where('statut', '!=', 'annule')
             ->where('id', '!=', $id)
@@ -160,7 +170,7 @@ class RendezVousController extends Controller
         }
 
         $medecinOccupe = RendezVous::where('medecin_id', $validated['medecin_id'])
-            ->where('date_rv', $validated['date_rv'])
+            ->whereDate('date_rv', $validated['date_rv'])
             ->where('heure_rv', $validated['heure_rv'])
             ->where('statut', '!=', 'annule')
             ->where('id', '!=', $id)
@@ -170,7 +180,6 @@ class RendezVousController extends Controller
             return back()->withInput()->with('error', 'Ce médecin est déjà occupé à cette date et heure.');
         }
 
-        $rendezvous = RendezVous::findOrFail($id);
         $oldValues = $rendezvous->toArray();
         $rendezvous->update($validated);
 
@@ -183,6 +192,7 @@ class RendezVousController extends Controller
     public function destroy($id)
     {
         $rdv = RendezVous::findOrFail($id);
+        $this->authorize('delete', $rdv);
         ActivityLog::log('suppression', "RDV supprimé : patient #{$rdv->patient_id}, médecin #{$rdv->medecin_id}, le {$rdv->date_rv}", $rdv);
         $rdv->delete();
 
@@ -193,6 +203,7 @@ class RendezVousController extends Controller
     public function annuler($id)
     {
         $rdv = RendezVous::findOrFail($id);
+        $this->authorize('cancel', $rdv);
         $rdv->update(['statut' => 'annule']);
 
         ActivityLog::log('annulation', "RDV #{$id} annulé", $rdv);
@@ -203,6 +214,7 @@ class RendezVousController extends Controller
     public function confirmer($id)
     {
         $rdv = RendezVous::findOrFail($id);
+        $this->authorize('update', $rdv);
         $rdv->update(['statut' => 'confirme']);
 
         ActivityLog::log('modification', "RDV #{$id} confirmé pour {$rdv->patient->nom} {$rdv->patient->prenom}", $rdv);
@@ -227,14 +239,14 @@ class RendezVousController extends Controller
         }
 
         $pris = RendezVous::where('medecin_id', $request->medecin_id)
-            ->where('date_rv', $request->date)
+            ->whereDate('date_rv', $request->date)
             ->where('statut', '!=', 'annule')
             ->pluck('heure_rv')
             ->map(fn($h) => substr($h, 0, 5))
             ->toArray();
 
         $travaille = Disponibilite::where('medecin_id', $request->medecin_id)
-            ->where('date_travail', $request->date)
+            ->whereDate('date_travail', $request->date)
             ->exists();
 
         $creneaux = [];

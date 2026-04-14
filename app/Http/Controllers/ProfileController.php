@@ -28,10 +28,10 @@ class ProfileController extends Controller
             ]);
 
             $user->name = $request->name;
+            $user->email = $request->email;
             if ($user->isDirty('email')) {
                 $user->email_verified_at = null;
             }
-            $user->email = $request->email;
             $user->save();
 
             return back()->with('success', 'Informations mises à jour.');

@@ -89,6 +89,12 @@
             </tbody>
         </table>
 
+        @if($medecins->hasPages())
+            <div class="px-5 py-4 border-t border-gray-100">
+                {{ $medecins->links() }}
+            </div>
+        @endif
+
         <div id="emptyState" class="hidden py-20 text-center">
             <i class="fas fa-user-md text-5xl text-gray-200 mb-4"></i>
             <p class="text-gray-400 italic">Aucun médecin trouvé.</p>

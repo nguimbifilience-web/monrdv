@@ -17,6 +17,8 @@ class PatientController extends Controller
 {
     public function index(Request $request)
     {
+        $this->authorize('viewAny', Patient::class);
+
         $patients = Patient::with(['medecin', 'assurance'])
             ->filter($request->only(['search', 'medecin_id', 'est_assure', 'assurance_id']))
             ->latest()
@@ -37,6 +39,8 @@ class PatientController extends Controller
 
     public function create()
     {
+        $this->authorize('create', Patient::class);
+
         $medecins = Medecin::with('specialite')->orderBy('nom')->get();
         $assurances = Assurance::orderBy('nom')->get();
         return view('patients.create', compact('medecins', 'assurances'));
@@ -44,6 +48,8 @@ class PatientController extends Controller
 
     public function store(StorePatientRequest $request)
     {
+        $this->authorize('create', Patient::class);
+
         // Créer le compte utilisateur si un email est fourni
         $userId = null;
         if ($request->filled('email')) {
@@ -76,6 +82,8 @@ class PatientController extends Controller
 
     public function show(Patient $patient)
     {
+        $this->authorize('view', $patient);
+
         $patient->load([
             'assurance',
             'medecin.specialite',
@@ -94,6 +102,8 @@ class PatientController extends Controller
 
     public function edit(Patient $patient)
     {
+        $this->authorize('update', $patient);
+
         $medecins = Medecin::with('specialite')->orderBy('nom')->get();
         $assurances = Assurance::orderBy('nom')->get();
         return view('patients.edit', compact('patient', 'medecins', 'assurances'));
@@ -101,6 +111,8 @@ class PatientController extends Controller
 
     public function update(UpdatePatientRequest $request, Patient $patient)
     {
+        $this->authorize('update', $patient);
+
         $oldValues = $patient->toArray();
         $patient->update($request->all());
         ActivityLog::log('modification', "Patient modifié : {$patient->nom} {$patient->prenom}", $patient, $oldValues, $request->all());
@@ -111,6 +123,8 @@ class PatientController extends Controller
 
     public function destroy(Patient $patient)
     {
+        $this->authorize('delete', $patient);
+
         ActivityLog::log('suppression', "Patient supprimé : {$patient->nom} {$patient->prenom}", $patient);
         $patient->delete();
         return redirect()->route('patients.index')
@@ -119,6 +133,8 @@ class PatientController extends Controller
 
     public function updateNotes(Request $request, Patient $patient)
     {
+        $this->authorize('update', $patient);
+
         $data = $request->validate([
             'notes_medicales' => 'nullable|string',
             'observations' => 'nullable|string',
@@ -132,6 +148,8 @@ class PatientController extends Controller
 
     public function ajaxSearch(Request $request)
     {
+        $this->authorize('viewAny', Patient::class);
+
         $query = Patient::with(['medecin', 'assurance']);
 
         if ($request->filled('search')) {

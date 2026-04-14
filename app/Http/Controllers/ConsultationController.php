@@ -13,6 +13,8 @@ class ConsultationController extends Controller
 {
     public function index(Request $request)
     {
+        $this->authorize('viewAny', Consultation::class);
+
         $query = Consultation::with(['patient.assurance', 'medecin.specialite']);
 
         if ($request->filled('search')) {
@@ -47,6 +49,8 @@ class ConsultationController extends Controller
 
     public function recettesMensuelles(Request $request)
     {
+        $this->authorize('viewAny', Consultation::class);
+
         $mois = $request->input('mois', now()->month);
         $annee = $request->input('annee', now()->year);
 
@@ -105,6 +109,8 @@ class ConsultationController extends Controller
      */
     public function store(StoreConsultationRequest $request)
     {
+        $this->authorize('create', Consultation::class);
+
         $validated = $request->validated();
 
         $patient = Patient::with('assurance')->findOrFail($validated['patient_id']);
@@ -147,6 +153,7 @@ class ConsultationController extends Controller
     public function ticket($id)
     {
         $consultation = Consultation::with(['patient.assurance', 'medecin.specialite'])->findOrFail($id);
+        $this->authorize('view', $consultation);
 
         return view('consultations.ticket', compact('consultation'));
     }

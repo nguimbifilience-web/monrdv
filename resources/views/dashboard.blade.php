@@ -58,6 +58,127 @@
 
 </div>
 
+{{-- SECTION STATISTIQUES --}}
+@if(!empty($stats))
+<div class="mt-10">
+    <div class="flex justify-between items-center mb-4">
+        <div>
+            <h2 class="text-xl font-black text-blue-900 uppercase">Statistiques</h2>
+            <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Mois en cours et 30 derniers jours</p>
+        </div>
+    </div>
+
+    {{-- KPI cards --}}
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        <div class="bg-white rounded-2xl shadow-md border border-gray-100 p-6">
+            <p class="text-[11px] font-bold text-gray-400 uppercase mb-2">Recettes du mois</p>
+            <p class="text-2xl font-black text-gray-800">{{ number_format($stats['recettesMois'], 0, ',', ' ') }} F</p>
+            @if($stats['evolution'] !== null)
+                @php $cls = $stats['evolution'] >= 0 ? 'text-green-600' : 'text-red-500'; @endphp
+                <p class="text-xs {{ $cls }} font-bold mt-1">
+                    <i class="fas fa-arrow-{{ $stats['evolution'] >= 0 ? 'up' : 'down' }} mr-1"></i>
+                    {{ abs($stats['evolution']) }}% vs mois précédent
+                </p>
+            @else
+                <p class="text-xs text-gray-400 font-bold mt-1">Pas de référence</p>
+            @endif
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-md border border-gray-100 p-6">
+            <p class="text-[11px] font-bold text-gray-400 uppercase mb-2">Taux d'annulation (30j)</p>
+            <p class="text-2xl font-black text-gray-800">{{ $stats['tauxAnnulation'] }}%</p>
+            <p class="text-xs text-gray-400 font-bold mt-1">{{ $stats['totalRdv30j'] }} RDV au total</p>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-md border border-gray-100 p-6">
+            <p class="text-[11px] font-bold text-gray-400 uppercase mb-2">Mois précédent (réf.)</p>
+            <p class="text-2xl font-black text-gray-800">{{ number_format($stats['recettesMoisPrec'], 0, ',', ' ') }} F</p>
+            <p class="text-xs text-gray-400 font-bold mt-1">Recettes patients</p>
+        </div>
+    </div>
+
+    {{-- Graphiques --}}
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="bg-white rounded-2xl shadow-md border border-gray-100 p-6">
+            <h3 class="text-sm font-black text-gray-600 uppercase mb-4">RDV par statut (30j)</h3>
+            <canvas id="chart-statuts"></canvas>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-md border border-gray-100 p-6 lg:col-span-2">
+            <h3 class="text-sm font-black text-gray-600 uppercase mb-4">Consultations sur 7 jours</h3>
+            <canvas id="chart-consultations"></canvas>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-md border border-gray-100 p-6 lg:col-span-3">
+            <h3 class="text-sm font-black text-gray-600 uppercase mb-4">Top médecins du mois</h3>
+            @if(empty($stats['topMedecins']))
+                <p class="text-sm text-gray-400 italic">Pas encore de consultations ce mois.</p>
+            @else
+                <canvas id="chart-medecins" height="80"></canvas>
+            @endif
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+(() => {
+    const stats = @json($stats);
+    const palette = ['#f97316', '#22c55e', '#ef4444', '#3b82f6', '#a855f7'];
+
+    const statutLabels = { en_attente: 'En attente', confirme: 'Confirmé', termine: 'Terminé', annule: 'Annulé' };
+    const statutsKeys = Object.keys(stats.rdvParStatut || {});
+    if (statutsKeys.length) {
+        new Chart(document.getElementById('chart-statuts'), {
+            type: 'doughnut',
+            data: {
+                labels: statutsKeys.map(k => statutLabels[k] || k),
+                datasets: [{
+                    data: statutsKeys.map(k => stats.rdvParStatut[k]),
+                    backgroundColor: palette,
+                }],
+            },
+            options: { plugins: { legend: { position: 'bottom' } } },
+        });
+    }
+
+    new Chart(document.getElementById('chart-consultations'), {
+        type: 'bar',
+        data: {
+            labels: stats.consultations7j.map(d => d.label),
+            datasets: [{
+                label: 'Consultations',
+                data: stats.consultations7j.map(d => d.total),
+                backgroundColor: '#3b82f6',
+                borderRadius: 6,
+            }],
+        },
+        options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } },
+    });
+
+    if ((stats.topMedecins || []).length) {
+        new Chart(document.getElementById('chart-medecins'), {
+            type: 'bar',
+            data: {
+                labels: stats.topMedecins.map(m => m.nom),
+                datasets: [{
+                    label: 'Consultations',
+                    data: stats.topMedecins.map(m => m.total),
+                    backgroundColor: '#22c55e',
+                    borderRadius: 6,
+                }],
+            },
+            options: {
+                indexAxis: 'y',
+                plugins: { legend: { display: false } },
+                scales: { x: { beginAtZero: true, ticks: { precision: 0 } } },
+            },
+        });
+    }
+})();
+</script>
+@endif
+
 {{-- SECTION GESTION DES COMPTES --}}
 <div class="mt-10">
     <div class="flex justify-between items-center mb-4">

@@ -67,7 +67,7 @@ class RendezVousController extends Controller
         }
 
         // En attente en premier, puis par date
-        $rendezvous = $query->orderByRaw("FIELD(statut, 'en_attente', 'confirme', 'termine', 'annule')")
+        $rendezvous = $query->orderByRaw("CASE statut WHEN 'en_attente' THEN 1 WHEN 'confirme' THEN 2 WHEN 'termine' THEN 3 WHEN 'annule' THEN 4 ELSE 5 END")
             ->orderBy('date_rv', 'desc')
             ->paginate(15)
             ->withQueryString();

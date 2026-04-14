@@ -7,6 +7,9 @@
             <h1 class="text-3xl font-black text-blue-900 uppercase italic">Historique</h1>
             <p class="text-xs text-gray-400 font-bold uppercase tracking-widest">Consultations enregistrees</p>
         </div>
+        <a href="{{ route('exports.consultations', request()->only(['mois', 'annee'])) }}" class="bg-white border-2 border-gray-200 text-gray-700 px-6 py-4 rounded-2xl font-black text-xs uppercase hover:border-blue-400 hover:text-blue-600 transition-all">
+            <i class="fas fa-file-csv mr-2"></i> Exporter CSV
+        </a>
     </div>
 
     {{-- LIEN RECETTES MENSUELLES --}}

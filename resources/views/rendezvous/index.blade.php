@@ -8,6 +8,9 @@
             <p class="text-xs text-gray-400 font-bold uppercase tracking-widest">Planification et suivi des consultations</p>
         </div>
         <div class="flex gap-3">
+            <a href="{{ route('exports.rendezvous', request()->only(['date_debut', 'date_fin'])) }}" class="bg-white border-2 border-gray-200 text-gray-700 px-6 py-4 rounded-2xl font-black text-xs uppercase hover:border-blue-400 hover:text-blue-600 transition-all">
+                <i class="fas fa-file-csv mr-2"></i> Exporter CSV
+            </a>
             <button onclick="toggleModal('modalConsultation')" class="bg-green-500 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase shadow-lg hover:scale-105 transition-all">
                 <i class="fas fa-stethoscope mr-2"></i> Consultation
             </button>

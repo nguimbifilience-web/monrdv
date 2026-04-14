@@ -7,9 +7,14 @@
             <h1 class="text-3xl font-black text-blue-900 uppercase italic">Recettes Mensuelles</h1>
             <p class="text-xs text-gray-400 font-bold uppercase tracking-widest">Historique des recettes par jour</p>
         </div>
-        <a href="{{ route('consultations.index') }}" class="text-gray-400 hover:text-blue-900 font-bold text-xs uppercase flex items-center gap-2 transition-colors">
-            <i class="fas fa-arrow-left"></i> Retour Historique
-        </a>
+        <div class="flex items-center gap-4">
+            <a href="{{ route('exports.recettes', ['mois' => $mois, 'annee' => $annee]) }}" class="bg-white border-2 border-gray-200 text-gray-700 px-6 py-3 rounded-xl font-black text-xs uppercase hover:border-blue-400 hover:text-blue-600 transition-all">
+                <i class="fas fa-file-csv mr-2"></i> Exporter CSV
+            </a>
+            <a href="{{ route('consultations.index') }}" class="text-gray-400 hover:text-blue-900 font-bold text-xs uppercase flex items-center gap-2 transition-colors">
+                <i class="fas fa-arrow-left"></i> Retour Historique
+            </a>
+        </div>
     </div>
 
     {{-- SELECTEUR MOIS / ANNEE --}}

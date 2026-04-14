@@ -7,9 +7,14 @@
             <h1 class="text-3xl font-black text-blue-900 uppercase italic">Patients</h1>
             <p class="text-xs text-gray-400 font-bold uppercase tracking-widest">Gestion complète des dossiers patients</p>
         </div>
-        <a href="{{ route('patients.create') }}" class="bg-cyan-400 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase shadow-lg hover:scale-105 transition-all">
-            + Nouveau Patient
-        </a>
+        <div class="flex gap-3">
+            <a href="{{ route('exports.patients') }}" class="bg-white border-2 border-gray-200 text-gray-700 px-6 py-4 rounded-2xl font-black text-xs uppercase hover:border-blue-400 hover:text-blue-600 transition-all">
+                <i class="fas fa-file-csv mr-2"></i> Exporter CSV
+            </a>
+            <a href="{{ route('patients.create') }}" class="bg-cyan-400 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase shadow-lg hover:scale-105 transition-all">
+                + Nouveau Patient
+            </a>
+        </div>
     </div>
 
     {{-- STATISTIQUES --}}

@@ -2,12 +2,16 @@
 
 namespace App\Providers;
 
+use Illuminate\Auth\Events\Failed;
+use Illuminate\Auth\Events\Lockout;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
+use App\Models\ActivityLog;
 use App\Models\Patient;
 use App\Models\RendezVous;
 use App\Models\DocumentPatient;
@@ -53,5 +57,27 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(RendezVous::class, RendezVousPolicy::class);
         Gate::policy(DocumentPatient::class, DocumentPatientPolicy::class);
         Gate::policy(Consultation::class, ConsultationPolicy::class);
+
+        // Audit des echecs d'authentification (RGPD / securite).
+        // ActivityLog::log() court-circuite quand auth()->check() est faux,
+        // donc on ecrit directement la ligne.
+        Event::listen(function (Failed $event) {
+            ActivityLog::create([
+                'user_id'     => $event->user?->id,
+                'action'      => 'connexion_echec',
+                'model_type'  => 'User',
+                'model_id'    => $event->user?->id,
+                'description' => "Echec de connexion pour {$event->credentials['email']}",
+                'ip_address'  => request()->ip(),
+            ]);
+        });
+
+        Event::listen(function (Lockout $event) {
+            ActivityLog::create([
+                'action'      => 'connexion_bloquee',
+                'description' => "Tentatives trop nombreuses pour {$event->request->input('email')}",
+                'ip_address'  => request()->ip(),
+            ]);
+        });
     }
 }

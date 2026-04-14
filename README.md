@@ -1,59 +1,108 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# MonRDV
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Application SaaS de prise de rendez-vous médicaux multi-tenant à destination des
+cliniques. Chaque clinique dispose de son propre espace isolé, avec gestion des
+médecins, patients, rendez-vous, consultations, assurances et facturation.
 
-## About Laravel
+## Stack
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- **PHP 8.3** / **Laravel 13**
+- **MySQL 8.4** (prod) / **SQLite `:memory:`** (tests)
+- **Tailwind CSS 3** / **Alpine.js**
+- **Docker + Laravel Sail** pour le dev local
+- **Vite** pour le bundling frontend
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Architecture
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- **Multi-tenancy** par `clinic_id` propagé via le trait `BelongsToClinic`
+  (auto-fill à la création) + un `ClinicScope` global qui filtre
+  automatiquement toutes les requêtes Eloquent selon la clinique de
+  l'utilisateur authentifié.
+- **Rôles** : `super_admin` (transversal), `admin`, `secretaire`, `medecin`,
+  `patient`. Les `super_admin` contournent le `ClinicScope` ; tous les autres
+  sont cloisonnés à leur clinique.
+- **Policies Laravel** actives sur `Patient`, `RendezVous`, `Consultation`,
+  `DocumentPatient` — voir `tests/Feature/PolicyTest.php`.
+- **Audit RGPD** : modèle `ActivityLog` enregistre création / modification /
+  suppression des données médicales + actions super admin + connexions /
+  déconnexions / échecs de login (avec IP).
 
-## Learning Laravel
+## Démarrer en local
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
-
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+Pré-requis : Docker Desktop + Git.
 
 ```bash
-composer require laravel/boost --dev
+git clone https://github.com/nguimbifilience-web/monrdv.git
+cd monrdv
+git checkout feature/multi-tenancy
 
-php artisan boost:install
+cp .env.example .env
+# Adapter les valeurs DB_* si besoin (Sail utilise le service mysql par défaut)
+
+./vendor/bin/sail up -d
+./vendor/bin/sail composer install
+./vendor/bin/sail npm install
+./vendor/bin/sail artisan key:generate
+./vendor/bin/sail artisan migrate --seed
+./vendor/bin/sail npm run dev
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+L'application est disponible sur http://localhost.
 
-## Contributing
+## Commandes utiles
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+```bash
+# Tests (SQLite :memory:)
+./vendor/bin/sail artisan test
 
-## Code of Conduct
+# Lancer un sous-ensemble
+./vendor/bin/sail artisan test --filter=PolicyTest
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+# Envoyer les rappels de RDV (à brancher sur un cron)
+./vendor/bin/sail artisan rdv:rappels
 
-## Security Vulnerabilities
+# Consulter les logs applicatifs
+./vendor/bin/sail artisan pail
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+## Comptes de démo après seed
 
-## License
+- **Super Admin** : `superadmin@monrdv.ga`
+- **Admin clinique** : voir `database/seeders/`
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
-"# monrdv" 
+## Déploiement
+
+La prod actuelle tourne sur InfinityFree (`https://mnrdv.42web.io`). Points
+d'attention :
+
+- `APP_ENV=production` / `APP_DEBUG=false` obligatoirement
+- `FORCE_HTTPS=true` derrière le reverse proxy
+- `SESSION_DRIVER=file`, `CACHE_STORE=file` (pas de Redis sur l'hébergement
+  mutualisé)
+- Logs visibles via FTP dans `storage/logs/laravel.log`
+
+## Branches
+
+- `main` : version stable d'avant la refonte multi-tenancy, conservée comme
+  filet de sécurité.
+- `feature/multi-tenancy` : version active avec Super Admin, multi-tenancy,
+  audit RGPD, policies.
+
+## Organisation du code
+
+```
+app/
+  Http/Controllers/        → controllers métier + namespace SuperAdmin/
+  Http/Middleware/         → AdminMiddleware, SuperAdminMiddleware, EnsureUserBelongsToClinic, RoleMiddleware
+  Models/                  → Eloquent models + Scopes/ + Traits/BelongsToClinic
+  Policies/                → PatientPolicy, RendezVousPolicy, ConsultationPolicy, DocumentPatientPolicy
+database/
+  migrations/              → schéma complet, multi-tenancy + index composites
+  seeders/                 → comptes démo
+resources/views/           → Blade + Tailwind
+tests/Feature/             → tests HTTP + policies + multi-tenancy
+```
+
+## Rapport de suivi
+
+Les décisions et corrections majeures sont loguées dans `1774534605_rapport.md`.

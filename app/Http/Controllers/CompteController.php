@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ActivityLog;
 use App\Models\User;
 use App\Models\Patient;
 use App\Models\Medecin;
@@ -53,6 +54,8 @@ class CompteController extends Controller
             ]);
         }
 
+        ActivityLog::log('creation', "Compte {$request->role} cree : {$request->email}", $user);
+
         return back()->with('success', "Compte créé ! Identifiants : {$request->email} / {$password}");
     }
 
@@ -85,7 +88,16 @@ class CompteController extends Controller
             $data['password'] = Hash::make($request->password);
         }
 
+        $oldValues = $user->only(['name', 'email']);
         $user->update($data);
+
+        ActivityLog::log(
+            'modification',
+            "Compte {$user->email} modifie" . ($request->filled('password') ? ' (mot de passe)' : ''),
+            $user,
+            $oldValues,
+            ['name' => $request->name, 'email' => $request->email]
+        );
 
         return back()->with('success', "Compte de {$user->name} mis à jour.");
     }
@@ -105,6 +117,8 @@ class CompteController extends Controller
             'password' => Hash::make($newPassword),
         ]);
 
+        ActivityLog::log('modification', "Mot de passe reinitialise pour {$user->email}", $user);
+
         return back()->with('reset_password', json_encode([
             'name' => $user->name,
             'email' => $user->email,
@@ -120,6 +134,7 @@ class CompteController extends Controller
             return back()->with('error', 'Vous ne pouvez pas supprimer votre propre compte.');
         }
 
+        ActivityLog::log('suppression', "Compte supprime : {$user->email} ({$user->role})", $user);
         $user->delete();
 
         return back()->with('success', "Compte de {$user->name} supprimé.");

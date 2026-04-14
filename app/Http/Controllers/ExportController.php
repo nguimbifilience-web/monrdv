@@ -12,6 +12,8 @@ class ExportController extends Controller
 {
     public function patients(Request $request): StreamedResponse
     {
+        $this->authorize('viewAny', Patient::class);
+
         $patients = Patient::with(['medecin', 'assurance'])->get();
 
         return $this->streamCsv('patients.csv',
@@ -32,6 +34,8 @@ class ExportController extends Controller
 
     public function rendezvous(Request $request): StreamedResponse
     {
+        $this->authorize('viewAny', RendezVous::class);
+
         $query = RendezVous::with(['patient', 'medecin.specialite']);
 
         if ($request->filled('date_debut')) {
@@ -60,6 +64,8 @@ class ExportController extends Controller
 
     public function consultations(Request $request): StreamedResponse
     {
+        $this->authorize('viewAny', Consultation::class);
+
         $query = Consultation::with(['patient.assurance', 'medecin.specialite']);
 
         if ($request->filled('mois') && $request->filled('annee')) {
@@ -88,6 +94,8 @@ class ExportController extends Controller
 
     public function recettes(Request $request): StreamedResponse
     {
+        $this->authorize('viewAny', Consultation::class);
+
         $mois = $request->input('mois', now()->month);
         $annee = $request->input('annee', now()->year);
 

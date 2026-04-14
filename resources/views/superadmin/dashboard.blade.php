@@ -6,6 +6,125 @@
     <p class="text-[10px] md:text-xs text-gray-400 font-bold uppercase tracking-widest">Dashboard Super Admin — statistiques par clinique</p>
 </div>
 
+{{-- STATS GLOBALES --}}
+@if(!empty($globalStats))
+<div class="mb-8">
+    {{-- KPI cards --}}
+    <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+            <p class="text-[10px] font-bold text-gray-400 uppercase mb-1">Cliniques</p>
+            <p class="text-2xl font-black text-blue-900">{{ $globalStats['totalClinics'] }}</p>
+            <p class="text-[10px] text-green-600 font-bold mt-1">{{ $globalStats['activeClinics'] }} actives</p>
+        </div>
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+            <p class="text-[10px] font-bold text-gray-400 uppercase mb-1">Bloquees</p>
+            <p class="text-2xl font-black text-red-500">{{ $globalStats['blockedClinics'] }}</p>
+            <p class="text-[10px] text-gray-400 font-bold mt-1">{{ $globalStats['inactiveClinics'] }} inactives</p>
+        </div>
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+            <p class="text-[10px] font-bold text-gray-400 uppercase mb-1">Recettes mois</p>
+            <p class="text-xl font-black text-gray-800">{{ number_format($globalStats['revenueMois'], 0, ',', ' ') }} F</p>
+            @if($globalStats['revenueEvolution'] !== null)
+                @php $cls = $globalStats['revenueEvolution'] >= 0 ? 'text-green-600' : 'text-red-500'; @endphp
+                <p class="text-[10px] {{ $cls }} font-bold mt-1">
+                    <i class="fas fa-arrow-{{ $globalStats['revenueEvolution'] >= 0 ? 'up' : 'down' }} mr-1"></i>
+                    {{ abs($globalStats['revenueEvolution']) }}% vs m-1
+                </p>
+            @endif
+        </div>
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+            <p class="text-[10px] font-bold text-gray-400 uppercase mb-1">RDV du mois</p>
+            <p class="text-2xl font-black text-orange-600">{{ $globalStats['rdvMois'] }}</p>
+            <p class="text-[10px] text-gray-400 font-bold mt-1">toutes cliniques</p>
+        </div>
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+            <p class="text-[10px] font-bold text-gray-400 uppercase mb-1">Utilisateurs</p>
+            <p class="text-2xl font-black text-indigo-600">{{ $globalStats['totalUsers'] }}</p>
+            <p class="text-[10px] text-gray-400 font-bold mt-1">hors super admin</p>
+        </div>
+    </div>
+
+    {{-- Graphiques --}}
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <h3 class="text-sm font-black text-gray-600 uppercase mb-4">Top 5 cliniques - recettes</h3>
+            @if(empty($globalStats['topRevenue']))
+                <p class="text-sm text-gray-400 italic">Pas encore de recettes ce mois.</p>
+            @else
+                <canvas id="sa-chart-revenue" height="180"></canvas>
+            @endif
+        </div>
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <h3 class="text-sm font-black text-gray-600 uppercase mb-4">Top 5 cliniques - RDV</h3>
+            @if(empty($globalStats['topRdv']))
+                <p class="text-sm text-gray-400 italic">Pas encore de RDV ce mois.</p>
+            @else
+                <canvas id="sa-chart-rdv" height="180"></canvas>
+            @endif
+        </div>
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <h3 class="text-sm font-black text-gray-600 uppercase mb-4">Nouvelles cliniques (6 mois)</h3>
+            <canvas id="sa-chart-croissance" height="180"></canvas>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+(() => {
+    const stats = @json($globalStats);
+
+    if ((stats.topRevenue || []).length) {
+        new Chart(document.getElementById('sa-chart-revenue'), {
+            type: 'bar',
+            data: {
+                labels: stats.topRevenue.map(r => r.nom),
+                datasets: [{
+                    label: 'Recettes (F)',
+                    data: stats.topRevenue.map(r => r.total),
+                    backgroundColor: '#22c55e',
+                    borderRadius: 6,
+                }],
+            },
+            options: { indexAxis: 'y', plugins: { legend: { display: false } }, scales: { x: { beginAtZero: true } } },
+        });
+    }
+
+    if ((stats.topRdv || []).length) {
+        new Chart(document.getElementById('sa-chart-rdv'), {
+            type: 'bar',
+            data: {
+                labels: stats.topRdv.map(r => r.nom),
+                datasets: [{
+                    label: 'RDV',
+                    data: stats.topRdv.map(r => r.total),
+                    backgroundColor: '#f97316',
+                    borderRadius: 6,
+                }],
+            },
+            options: { indexAxis: 'y', plugins: { legend: { display: false } }, scales: { x: { beginAtZero: true, ticks: { precision: 0 } } } },
+        });
+    }
+
+    new Chart(document.getElementById('sa-chart-croissance'), {
+        type: 'line',
+        data: {
+            labels: stats.croissance.map(d => d.label),
+            datasets: [{
+                label: 'Nouvelles cliniques',
+                data: stats.croissance.map(d => d.total),
+                borderColor: '#3b82f6',
+                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                fill: true,
+                tension: 0.3,
+            }],
+        },
+        options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } },
+    });
+})();
+</script>
+@endif
+
 {{-- Filtres + toggle d'affichage --}}
 <form method="GET" action="{{ route('superadmin.dashboard') }}" class="bg-white rounded-2xl md:rounded-3xl shadow-sm border border-gray-50 p-4 md:p-6 mb-6 md:mb-8">
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">

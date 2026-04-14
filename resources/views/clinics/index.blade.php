@@ -233,6 +233,55 @@
                 <input type="email" name="email" id="edit_email" class="w-full bg-gray-50 border-2 border-gray-100 rounded-xl p-3 font-bold text-blue-900 text-sm focus:border-orange-500 focus:ring-0">
             </div>
 
+            {{-- Branding --}}
+            <div class="border-t border-gray-100 pt-4">
+                <p class="text-[10px] font-black text-blue-900 uppercase tracking-widest mb-3"><i class="fas fa-palette mr-1"></i> Branding</p>
+
+                {{-- Logo actuel + upload --}}
+                <div class="flex items-center gap-4 mb-3">
+                    <img id="edit_logo_preview" src="" alt="" class="w-16 h-16 rounded-xl object-cover bg-gray-100 border-2 border-gray-200">
+                    <div class="flex-1">
+                        <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Remplacer le logo</label>
+                        <input type="file" name="logo" accept="image/*" class="w-full text-xs">
+                        <button type="button" id="edit_remove_logo_btn" onclick="removeLogo()" class="mt-2 text-[10px] text-red-500 font-bold uppercase hover:underline hidden"><i class="fas fa-times mr-1"></i>Retirer le logo actuel</button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-3 gap-3">
+                    <div>
+                        <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Couleur 1</label>
+                        <input type="color" name="primary_color" id="edit_primary_color" class="w-full h-12 rounded-xl border-2 border-gray-100 cursor-pointer">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Couleur 2</label>
+                        <input type="color" name="secondary_color" id="edit_secondary_color" class="w-full h-12 rounded-xl border-2 border-gray-100 cursor-pointer">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Texte sidebar</label>
+                        <input type="color" name="sidebar_text_color" id="edit_sidebar_text_color" class="w-full h-12 rounded-xl border-2 border-gray-100 cursor-pointer">
+                    </div>
+                </div>
+            </div>
+
+            {{-- Abonnement --}}
+            @if($plans->count())
+            <div class="border-t border-gray-100 pt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Plan</label>
+                    <select name="plan_id" id="edit_plan_id" class="w-full bg-gray-50 border-2 border-gray-100 rounded-xl p-3 font-bold text-blue-900 text-sm focus:border-orange-500 focus:ring-0">
+                        <option value="">Aucun</option>
+                        @foreach($plans as $plan)
+                            <option value="{{ $plan->id }}">{{ $plan->name }} ({{ number_format($plan->price_monthly, 0, ',', ' ') }} F/mois)</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Expiration</label>
+                    <input type="date" name="subscription_expires_at" id="edit_subscription_expires_at" class="w-full bg-gray-50 border-2 border-gray-100 rounded-xl p-3 font-bold text-blue-900 text-sm focus:border-orange-500 focus:ring-0">
+                </div>
+            </div>
+            @endif
+
             <div class="flex flex-col-reverse sm:flex-row gap-3 pt-4">
                 <button type="button" onclick="toggleModal('modalEditClinic')" class="text-gray-400 hover:text-red-500 font-bold uppercase text-[10px] py-3">Annuler</button>
                 <button type="submit" class="flex-1 bg-orange-500 hover:bg-orange-600 text-white font-black px-6 py-3 rounded-xl uppercase tracking-widest text-xs">
@@ -270,14 +319,51 @@
 </div>
 
 <script>
+let currentClinicId = null;
 function editClinic(c) {
+    currentClinicId = c.id;
     document.getElementById('edit_name').value = c.name;
     document.getElementById('edit_email').value = c.email || '';
     document.getElementById('edit_phone').value = c.phone || '';
     document.getElementById('edit_address').value = c.address || '';
     document.getElementById('edit_city').value = c.city || '';
+    document.getElementById('edit_primary_color').value = c.primary_color || '#1e3a8a';
+    document.getElementById('edit_secondary_color').value = c.secondary_color || '#f97316';
+    document.getElementById('edit_sidebar_text_color').value = c.sidebar_text_color || '#ffffff';
+
+    const planField = document.getElementById('edit_plan_id');
+    if (planField) planField.value = c.plan_id || '';
+    const expField = document.getElementById('edit_subscription_expires_at');
+    if (expField) expField.value = c.subscription_expires_at || '';
+
+    const preview = document.getElementById('edit_logo_preview');
+    const removeBtn = document.getElementById('edit_remove_logo_btn');
+    if (c.logo_url) {
+        preview.src = c.logo_url;
+        preview.style.display = '';
+        removeBtn.classList.remove('hidden');
+    } else {
+        preview.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64"><rect width="64" height="64" fill="%23f3f4f6"/><text x="32" y="38" font-size="12" text-anchor="middle" fill="%23a1a1aa">—</text></svg>';
+        removeBtn.classList.add('hidden');
+    }
+
     document.getElementById('editClinicForm').action = '/super-admin/cliniques/' + c.id;
     toggleModal('modalEditClinic');
+}
+
+function removeLogo() {
+    if (!currentClinicId) return;
+    if (!confirm('Supprimer le logo de cette clinique ?')) return;
+
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '/super-admin/cliniques/' + currentClinicId + '/logo';
+    form.innerHTML = `
+        <input type="hidden" name="_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="_method" value="DELETE">
+    `;
+    document.body.appendChild(form);
+    form.submit();
 }
 function confirmDelete(id, name) {
     document.getElementById('delete_clinic_name').textContent = name;

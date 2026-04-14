@@ -39,8 +39,9 @@ class ClinicController extends Controller
 
         $clinics = $query->orderBy('name')->get();
         $cities = Clinic::whereNotNull('city')->distinct()->pluck('city');
+        $plans = \App\Models\Plan::where('is_active', true)->orderBy('price_monthly')->get();
 
-        return view('clinics.index', compact('clinics', 'cities'));
+        return view('clinics.index', compact('clinics', 'cities', 'plans'));
     }
 
     public function show(Request $request, Clinic $clinic)

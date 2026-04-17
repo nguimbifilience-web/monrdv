@@ -128,7 +128,7 @@ function verifierEmail() {
     }
 
     emailTimer = setTimeout(() => {
-        fetch(`/api/patients/check-email?email=${encodeURIComponent(email)}`, {
+        fetch(`/ajax/patients/check-email?email=${encodeURIComponent(email)}`, {
             headers: { 'Accept': 'application/json' }
         })
         .then(r => r.json())

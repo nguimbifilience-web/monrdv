@@ -112,7 +112,7 @@ function filtrerMedecins() {
         const search = document.getElementById('searchMedecin').value;
         const specialite = document.getElementById('filterSpecialite').value;
 
-        fetch(`/api/medecins/search?search=${encodeURIComponent(search)}&specialite_id=${specialite}`, {
+        fetch(`/ajax/medecins/search?search=${encodeURIComponent(search)}&specialite_id=${specialite}`, {
             headers: { 'Accept': 'application/json' }
         })
         .then(r => r.json())

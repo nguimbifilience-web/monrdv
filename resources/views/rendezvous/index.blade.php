@@ -328,7 +328,7 @@
             return;
         }
 
-        fetch('/api/patients/' + patientId + '/info')
+        fetch('/ajax/patients/' + patientId + '/info')
             .then(r => r.json())
             .then(data => {
                 // Infos patient

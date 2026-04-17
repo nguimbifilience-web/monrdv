@@ -6,6 +6,7 @@ use App\Models\RendezVous;
 use App\Models\Patient;
 use App\Models\Medecin;
 use App\Models\Disponibilite;
+use App\Models\MotifConsultation;
 use App\Models\ActivityLog;
 use App\Http\Requests\StoreRendezVousRequest;
 use Illuminate\Http\Request;
@@ -103,14 +104,14 @@ class RendezVousController extends Controller
             return back()->withInput()->with('error', 'Ce médecin ne travaille pas ce jour-là. Vérifiez son planning.');
         }
 
-        // Vérifier la limite de 15 RDV par jour
+        // Vérifier la limite de 20 RDV par jour
         $nbRdvJour = RendezVous::where('medecin_id', $validated['medecin_id'])
             ->whereDate('date_rv', $validated['date_rv'])
             ->where('statut', '!=', 'annule')
             ->count();
 
-        if ($nbRdvJour >= 15) {
-            return back()->withInput()->with('error', 'Ce médecin a atteint la limite de 15 rendez-vous pour cette journée.');
+        if ($nbRdvJour >= 20) {
+            return back()->withInput()->with('error', 'Ce médecin a atteint la limite de 20 rendez-vous pour cette journée.');
         }
 
         // RDV créé par le staff → statut confirmé directement
@@ -261,5 +262,23 @@ class RendezVousController extends Controller
             'travaille' => $travaille,
             'creneaux' => $creneaux,
         ]);
+    }
+
+    /**
+     * Motifs de consultation pour un médecin (via sa spécialité) — AJAX
+     */
+    public function motifsByMedecin(Request $request)
+    {
+        $request->validate(['medecin_id' => 'required|exists:medecins,id']);
+
+        $medecin = Medecin::findOrFail($request->medecin_id);
+
+        $motifs = $medecin->specialite_id
+            ? MotifConsultation::where('specialite_id', $medecin->specialite_id)
+                ->orderBy('libelle')
+                ->pluck('libelle')
+            : collect();
+
+        return response()->json(['motifs' => $motifs]);
     }
 }

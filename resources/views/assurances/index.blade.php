@@ -29,6 +29,7 @@
                     <th class="p-6">Contact</th>
                     <th class="p-6 text-center">Taux</th>
                     <th class="p-6 text-center">Patients</th>
+                    <th class="p-6 text-center">Modèle</th>
                     <th class="p-6 text-right">Actions</th>
                 </tr>
             </thead>
@@ -54,6 +55,15 @@
                     <td class="p-6 text-center">
                         <span class="bg-blue-50 text-blue-600 px-3 py-1 rounded-full font-black text-[11px]">{{ $a->patients_count }}</span>
                     </td>
+                    <td class="p-6 text-center">
+                        @if($a->document_modele_path)
+                            <a href="{{ asset('storage/' . $a->document_modele_path) }}" target="_blank" class="inline-flex items-center gap-1 bg-emerald-50 text-emerald-600 px-3 py-1 rounded-lg font-black text-[10px] uppercase hover:bg-emerald-100">
+                                <i class="fas fa-file-pdf"></i> Voir
+                            </a>
+                        @else
+                            <span class="text-gray-300 text-[10px] font-bold italic">Aucun</span>
+                        @endif
+                    </td>
                     <td class="p-6 text-right space-x-3 text-gray-300">
                         <button onclick='openEditModal(@json($a))' class="hover:text-cyan-400"><i class="fas fa-edit"></i></button>
                         <form action="{{ route('assurances.destroy', $a->id) }}" method="POST" class="inline">
@@ -63,7 +73,7 @@
                     </td>
                 </tr>
                 @empty
-                <tr><td colspan="7" class="p-20 text-center opacity-30 font-black italic text-xs uppercase">Aucun partenaire</td></tr>
+                <tr><td colspan="8" class="p-20 text-center opacity-30 font-black italic text-xs uppercase">Aucun partenaire</td></tr>
                 @endforelse
             </tbody>
         </table>
@@ -84,7 +94,7 @@
 {{-- MODAL AJOUT --}}
 <div id="modalAdd" class="hidden fixed inset-0 bg-blue-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
     <div class="bg-white rounded-[2.5rem] w-full max-w-xl p-8 shadow-2xl">
-        <form action="{{ route('assurances.store') }}" method="POST" class="grid grid-cols-2 gap-4">
+        <form action="{{ route('assurances.store') }}" method="POST" enctype="multipart/form-data" class="grid grid-cols-2 gap-4">
             @csrf
             <h2 class="col-span-2 text-xl font-black text-blue-900 uppercase italic mb-4">Nouveau Partenaire</h2>
             <input type="text" name="nom" placeholder="Nom de l'assurance" class="col-span-2 bg-gray-50 border-none rounded-xl p-4 font-bold" required>
@@ -97,6 +107,10 @@
             <input type="text" name="nom_referent" placeholder="Nom du Référent" class="bg-gray-50 border-none rounded-xl p-4 font-bold" required>
             <input type="text" name="telephone" placeholder="Téléphone" class="bg-gray-50 border-none rounded-xl p-4 font-bold" required>
             <input type="email" name="email" placeholder="Adresse Email" class="col-span-2 bg-gray-50 border-none rounded-xl p-4 font-bold" required>
+            <div class="col-span-2">
+                <label class="text-[10px] font-black uppercase text-gray-400 block mb-2">Modèle de fiche (PDF ou image, max 5 Mo)</label>
+                <input type="file" name="document_modele" accept=".pdf,.jpg,.jpeg,.png" class="w-full bg-gray-50 border-none rounded-xl p-3 font-bold text-xs">
+            </div>
             <div class="col-span-2 flex justify-end gap-4 mt-4">
                 <button type="button" onclick="toggleModal('modalAdd')" class="text-[10px] font-black uppercase text-gray-400">Annuler</button>
                 <button type="submit" class="bg-cyan-400 text-white px-8 py-3 rounded-xl font-black uppercase text-[10px]">Enregistrer</button>
@@ -108,7 +122,7 @@
 {{-- MODAL EDIT --}}
 <div id="modalEdit" class="hidden fixed inset-0 bg-blue-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
     <div class="bg-white rounded-[2.5rem] w-full max-w-xl p-8 shadow-2xl">
-        <form id="editForm" method="POST" class="grid grid-cols-2 gap-4">
+        <form id="editForm" method="POST" enctype="multipart/form-data" class="grid grid-cols-2 gap-4">
             @csrf @method('PUT')
             <h2 class="col-span-2 text-xl font-black text-cyan-400 uppercase italic mb-4">Modifier les informations</h2>
             <input type="text" name="nom" id="enom" class="col-span-2 bg-gray-50 border-none rounded-xl p-4 font-bold" required>
@@ -120,10 +134,25 @@
             <input type="text" name="nom_referent" id="eref" class="bg-gray-50 border-none rounded-xl p-4 font-bold" required>
             <input type="text" name="telephone" id="etel" class="bg-gray-50 border-none rounded-xl p-4 font-bold" required>
             <input type="email" name="email" id="email" class="col-span-2 bg-gray-50 border-none rounded-xl p-4 font-bold" required>
+            <div class="col-span-2">
+                <label class="text-[10px] font-black uppercase text-gray-400 block mb-2">Modèle de fiche (PDF ou image, max 5 Mo)</label>
+                <input type="file" name="document_modele" accept=".pdf,.jpg,.jpeg,.png" class="w-full bg-gray-50 border-none rounded-xl p-3 font-bold text-xs">
+                <div id="editDocExisting" class="hidden mt-2 flex items-center gap-3 text-xs">
+                    <a id="editDocLink" href="#" target="_blank" class="text-emerald-600 font-bold hover:underline">
+                        <i class="fas fa-file-pdf"></i> Document actuel
+                    </a>
+                    <button type="button" id="editDocDelete" class="text-red-500 font-bold text-[10px] uppercase hover:underline">
+                        <i class="fas fa-trash"></i> Supprimer
+                    </button>
+                </div>
+            </div>
             <div class="col-span-2 flex justify-end gap-4 mt-4">
                 <button type="button" onclick="toggleModal('modalEdit')" class="text-[10px] font-black uppercase text-gray-400">Fermer</button>
                 <button type="submit" class="bg-blue-900 text-white px-8 py-3 rounded-xl font-black uppercase text-[10px]">Mettre à jour</button>
             </div>
+        </form>
+        <form id="deleteDocForm" method="POST" class="hidden">
+            @csrf @method('DELETE')
         </form>
     </div>
 </div>
@@ -138,6 +167,24 @@
         document.getElementById('etaux').value = a.taux_couverture;
         document.getElementById('etel').value = a.telephone;
         document.getElementById('email').value = a.email;
+
+        const existingBlock = document.getElementById('editDocExisting');
+        const link = document.getElementById('editDocLink');
+        const deleteBtn = document.getElementById('editDocDelete');
+        const deleteForm = document.getElementById('deleteDocForm');
+        if (a.document_modele_path) {
+            existingBlock.classList.remove('hidden');
+            link.href = `/storage/${a.document_modele_path}`;
+            deleteForm.action = `/assurances/${a.id}/document`;
+            deleteBtn.onclick = function() {
+                if (confirm('Supprimer le document modèle ?')) {
+                    deleteForm.submit();
+                }
+            };
+        } else {
+            existingBlock.classList.add('hidden');
+        }
+
         toggleModal('modalEdit');
     }
 

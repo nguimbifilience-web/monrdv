@@ -68,9 +68,13 @@
                         <span class="bg-blue-900 text-white w-5 h-5 rounded-full inline-flex items-center justify-center text-[9px] mr-1">3</span>
                         Motif de la consultation <span class="text-red-400">*</span>
                     </label>
-                    <textarea name="motif" rows="3" required
+                    <select id="motif_select" onchange="onMotifSelect()"
+                        class="w-full bg-gray-50 border-2 border-gray-100 rounded-2xl p-4 font-bold text-blue-900 text-sm focus:border-blue-500 focus:ring-0 mb-2">
+                        <option value="">— Selectionnez un motif ou saisissez ci-dessous —</option>
+                    </select>
+                    <textarea name="motif" id="motif_text" rows="3" required
                         class="w-full bg-gray-50 border-2 border-gray-100 rounded-2xl p-4 font-bold text-blue-900 text-sm focus:border-blue-500 focus:bg-white focus:ring-0 transition-all"
-                        placeholder="Decrivez le motif de votre consultation (obligatoire)...">{{ old('motif') }}</textarea>
+                        placeholder="Ou saisissez un motif libre...">{{ old('motif') }}</textarea>
                 </div>
 
                 <div class="flex gap-4">
@@ -128,6 +132,7 @@ function chargerPlanning() {
     document.getElementById('date_selectionnee').classList.add('hidden');
 
     if (calendar) { calendar.destroy(); calendar = null; }
+    chargerMotifs();
 
     if (!medecinId) {
         container.innerHTML = '<p class="text-xs text-gray-400 italic text-center"><i class="fas fa-calendar-alt mr-1"></i> Selectionnez un medecin pour voir son planning.</p>';
@@ -136,7 +141,7 @@ function chargerPlanning() {
 
     container.innerHTML = '<p class="text-xs text-gray-400 italic text-center"><i class="fas fa-spinner fa-spin mr-1"></i> Chargement du planning...</p>';
 
-    fetch(`/espace-patient/api/medecin/${medecinId}/disponibilites`, {
+    fetch(`/espace-patient/ajax/medecin/${medecinId}/disponibilites`, {
         headers: { 'Accept': 'application/json' }
     })
     .then(r => r.json())
@@ -147,7 +152,7 @@ function chargerPlanning() {
 
         const rdvParDate = data.rdv_par_date || {};
         Object.entries(rdvParDate).forEach(([date, count]) => {
-            if (count >= 15) joursComplets[date] = true;
+            if (count >= 20) joursComplets[date] = true;
         });
 
         container.innerHTML = `
@@ -203,6 +208,40 @@ function chargerPlanning() {
     .catch(() => {
         container.innerHTML = '<p class="text-xs text-red-400 font-bold text-center">Erreur de chargement du planning.</p>';
     });
+}
+
+// ===== MOTIFS PAR SPÉCIALITÉ =====
+function chargerMotifs() {
+    const medecinId = document.getElementById('medecin_id').value;
+    const select = document.getElementById('motif_select');
+    select.innerHTML = '<option value="">— Selectionnez un motif ou saisissez ci-dessous —</option>';
+    if (!medecinId) return;
+
+    fetch(`/ajax/rendezvous/motifs?medecin_id=${medecinId}`, { headers: { 'Accept': 'application/json' } })
+        .then(r => r.json())
+        .then(data => {
+            (data.motifs || []).forEach(m => {
+                const opt = document.createElement('option');
+                opt.value = m;
+                opt.textContent = m;
+                select.appendChild(opt);
+            });
+            const optAutre = document.createElement('option');
+            optAutre.value = '__autre__';
+            optAutre.textContent = 'Autre (saisie libre)';
+            select.appendChild(optAutre);
+        });
+}
+
+function onMotifSelect() {
+    const select = document.getElementById('motif_select');
+    const textarea = document.getElementById('motif_text');
+    if (select.value && select.value !== '__autre__') {
+        textarea.value = select.value;
+    } else if (select.value === '__autre__') {
+        textarea.value = '';
+        textarea.focus();
+    }
 }
 
 function selectDate(dateStr) {

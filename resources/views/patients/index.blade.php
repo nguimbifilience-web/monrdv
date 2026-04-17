@@ -164,7 +164,7 @@ function filtrerPatients() {
             est_assure: document.getElementById('filterAssure').value,
         });
 
-        fetch(`/api/patients/search?${params}`, { headers: { 'Accept': 'application/json' } })
+        fetch(`/ajax/patients/search?${params}`, { headers: { 'Accept': 'application/json' } })
         .then(r => r.json())
         .then(data => {
             const tbody = document.getElementById('patientTableBody');

@@ -1,0 +1,25 @@
+{
+    "name": "MonRDV",
+    "short_name": "MonRDV",
+    "description": "Gestion de rendez-vous de cliniques",
+    "start_url": "/",
+    "scope": "/",
+    "display": "standalone",
+    "orientation": "portrait",
+    "background_color": "#f3f4f6",
+    "theme_color": "#2563eb",
+    "lang": "fr",
+    "icons": [
+        {
+            "src": "/apple-touch-icon.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "/favicon.ico",
+            "sizes": "256x256",
+            "type": "image/x-icon"
+        }
+    ]
+}

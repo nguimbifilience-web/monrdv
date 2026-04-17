@@ -29,4 +29,9 @@ class Specialite extends Model
     {
         return $this->hasManyThrough(RendezVous::class, Medecin::class);
     }
+
+    public function motifs()
+    {
+        return $this->hasMany(MotifConsultation::class);
+    }
 }

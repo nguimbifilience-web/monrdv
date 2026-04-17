@@ -17,6 +17,7 @@ class Assurance extends Model
         'telephone',
         'email',
         'taux_couverture',
+        'document_modele_path',
     ];
 
     public function patients()

@@ -15,6 +15,7 @@ class StoreAssuranceRequest extends FormRequest
             'taux_couverture' => 'required|numeric|min:0|max:100',
             'telephone' => 'required|string|max:20',
             'email' => 'required|email|max:255',
+            'document_modele' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
         ];
     }
 

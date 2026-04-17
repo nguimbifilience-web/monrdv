@@ -121,6 +121,74 @@
             </tbody>
         </table>
     </div>
+
+    {{-- ORDONNANCES PRESCRITES --}}
+    <div class="mt-8">
+        <h3 class="text-xs font-black text-blue-900 uppercase tracking-widest mb-4">
+            <i class="fas fa-prescription text-blue-500 mr-2"></i> Ordonnances prescrites par mon medecin
+        </h3>
+        <div class="bg-white rounded-[2.5rem] shadow-sm border border-gray-50 overflow-hidden">
+            <table class="w-full text-left">
+                <thead class="bg-gray-50/50 border-b border-gray-50">
+                    <tr class="text-[9px] font-black uppercase text-gray-300">
+                        <th class="p-5">Date</th>
+                        <th class="p-5">Medecin</th>
+                        <th class="p-5">Medicaments</th>
+                        <th class="p-5 text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-50">
+                    @forelse($ordonnances as $o)
+                        <tr class="hover:bg-gray-50/30 transition-colors">
+                            <td class="p-5 text-xs font-bold text-blue-900">{{ $o->date->format('d/m/Y') }}</td>
+                            <td class="p-5 text-xs font-black text-blue-900 uppercase">Dr {{ $o->medecin->nom }} {{ $o->medecin->prenom }}</td>
+                            <td class="p-5 text-xs text-gray-600">{{ $o->lignes->count() }} ligne(s)</td>
+                            <td class="p-5 text-center">
+                                <a href="{{ route('patient.ordonnances.show', $o) }}" class="text-blue-600 hover:text-blue-800 text-xs font-bold uppercase tracking-widest"><i class="fas fa-eye"></i> Voir</a>
+                                <a href="{{ route('patient.ordonnances.print', $o) }}" target="_blank" class="ml-3 text-gray-500 hover:text-gray-700 text-xs font-bold uppercase tracking-widest"><i class="fas fa-print"></i> Imprimer</a>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr><td colspan="4" class="p-10 text-center text-xs text-gray-400 uppercase tracking-widest">Aucune ordonnance</td></tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {{-- FEUILLES D'EXAMEN PRESCRITES --}}
+    <div class="mt-8">
+        <h3 class="text-xs font-black text-blue-900 uppercase tracking-widest mb-4">
+            <i class="fas fa-vials text-purple-500 mr-2"></i> Feuilles d'examen prescrites
+        </h3>
+        <div class="bg-white rounded-[2.5rem] shadow-sm border border-gray-50 overflow-hidden">
+            <table class="w-full text-left">
+                <thead class="bg-gray-50/50 border-b border-gray-50">
+                    <tr class="text-[9px] font-black uppercase text-gray-300">
+                        <th class="p-5">Date</th>
+                        <th class="p-5">Medecin</th>
+                        <th class="p-5">Examens</th>
+                        <th class="p-5 text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-50">
+                    @forelse($feuilles as $f)
+                        <tr class="hover:bg-gray-50/30 transition-colors">
+                            <td class="p-5 text-xs font-bold text-blue-900">{{ $f->date->format('d/m/Y') }}</td>
+                            <td class="p-5 text-xs font-black text-blue-900 uppercase">Dr {{ $f->medecin->nom }} {{ $f->medecin->prenom }}</td>
+                            <td class="p-5 text-xs text-gray-600">{{ $f->lignes->count() }} ligne(s)</td>
+                            <td class="p-5 text-center">
+                                <a href="{{ route('patient.examens.show', $f) }}" class="text-blue-600 hover:text-blue-800 text-xs font-bold uppercase tracking-widest"><i class="fas fa-eye"></i> Voir</a>
+                                <a href="{{ route('patient.examens.print', $f) }}" target="_blank" class="ml-3 text-gray-500 hover:text-gray-700 text-xs font-bold uppercase tracking-widest"><i class="fas fa-print"></i> Imprimer</a>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr><td colspan="4" class="p-10 text-center text-xs text-gray-400 uppercase tracking-widest">Aucune feuille d'examen</td></tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
 
 @if(session('success'))

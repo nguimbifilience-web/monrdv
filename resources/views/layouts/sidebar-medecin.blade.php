@@ -48,6 +48,20 @@
             <span class="font-bold text-sm uppercase tracking-widest text-[10px]">Mes Patients</span>
         </a>
 
+        <a href="{{ route('medecin.ordonnances.index') }}"
+           class="flex items-center gap-4 px-6 py-4 rounded-2xl
+           {{ request()->routeIs('medecin.ordonnances.*') ? 'nav-active' : 'text-white/60 hover:bg-white/10' }} transition-all">
+            <i class="fas fa-prescription"></i>
+            <span class="font-bold text-sm uppercase tracking-widest text-[10px]">Ordonnances</span>
+        </a>
+
+        <a href="{{ route('medecin.examens.index') }}"
+           class="flex items-center gap-4 px-6 py-4 rounded-2xl
+           {{ request()->routeIs('medecin.examens.*') ? 'nav-active' : 'text-white/60 hover:bg-white/10' }} transition-all">
+            <i class="fas fa-vials"></i>
+            <span class="font-bold text-sm uppercase tracking-widest text-[10px]">Feuilles d'examen</span>
+        </a>
+
     </nav>
 
     <div class="p-8 border-t border-white/10">

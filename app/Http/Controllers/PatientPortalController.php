@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Medecin;
 use App\Models\RendezVous;
 use App\Models\DocumentPatient;
+use App\Models\Ordonnance;
+use App\Models\FeuilleExamen;
 use Illuminate\Http\Request;
 
 class PatientPortalController extends Controller
@@ -97,14 +99,14 @@ class PatientPortalController extends Controller
             'motif' => 'required|string|max:500',
         ]);
 
-        // Vérifier la limite de 15 RDV par jour pour ce médecin
+        // Vérifier la limite de 20 RDV par jour pour ce médecin
         $nbRdvJour = RendezVous::where('medecin_id', $request->medecin_id)
             ->where('date_rv', $request->date_rv)
             ->where('statut', '!=', 'annule')
             ->count();
 
-        if ($nbRdvJour >= 15) {
-            return back()->withErrors(['date_rv' => 'Ce médecin a atteint la limite de 15 rendez-vous pour cette journée.'])->withInput();
+        if ($nbRdvJour >= 20) {
+            return back()->withErrors(['date_rv' => 'Ce médecin a atteint la limite de 20 rendez-vous pour cette journée.'])->withInput();
         }
 
         // Vérifier que le patient n'a pas déjà un RDV ce jour avec ce médecin
@@ -151,7 +153,17 @@ class PatientPortalController extends Controller
         $patient = $this->getPatient();
         $documents = DocumentPatient::where('patient_id', $patient->id)->latest()->get();
 
-        return view('patient.documents', compact('documents'));
+        $ordonnances = Ordonnance::with(['medecin.specialite', 'lignes'])
+            ->where('patient_id', $patient->id)
+            ->orderByDesc('date')
+            ->get();
+
+        $feuilles = FeuilleExamen::with(['medecin.specialite', 'lignes'])
+            ->where('patient_id', $patient->id)
+            ->orderByDesc('date')
+            ->get();
+
+        return view('patient.documents', compact('documents', 'ordonnances', 'feuilles'));
     }
 
     public function uploadDocument(Request $request)

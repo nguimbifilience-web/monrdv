@@ -8,6 +8,7 @@ use App\Http\Requests\StoreAssuranceRequest;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class AssuranceController extends Controller
 {
@@ -70,6 +71,11 @@ class AssuranceController extends Controller
 
     public function store(StoreAssuranceRequest $request) {
         $data = $request->validated();
+
+        if ($request->hasFile('document_modele')) {
+            $data['document_modele_path'] = $request->file('document_modele')->store('assurances/documents', 'public');
+        }
+
         Assurance::create($data);
         return back()->with('success', 'Partenaire ajouté.');
     }
@@ -77,12 +83,33 @@ class AssuranceController extends Controller
     public function update(StoreAssuranceRequest $request, $id) {
         $assurance = Assurance::findOrFail($id);
         $data = $request->validated();
+
+        if ($request->hasFile('document_modele')) {
+            if ($assurance->document_modele_path) {
+                Storage::disk('public')->delete($assurance->document_modele_path);
+            }
+            $data['document_modele_path'] = $request->file('document_modele')->store('assurances/documents', 'public');
+        }
+
         $assurance->update($data);
         return back()->with('success', 'Contacts mis à jour.');
     }
 
+    public function destroyDocument($id) {
+        $assurance = Assurance::findOrFail($id);
+        if ($assurance->document_modele_path) {
+            Storage::disk('public')->delete($assurance->document_modele_path);
+            $assurance->update(['document_modele_path' => null]);
+        }
+        return back()->with('success', 'Document supprimé.');
+    }
+
     public function destroy($id) {
-        Assurance::destroy($id);
+        $assurance = Assurance::findOrFail($id);
+        if ($assurance->document_modele_path) {
+            Storage::disk('public')->delete($assurance->document_modele_path);
+        }
+        $assurance->delete();
         return back()->with('error', 'Partenaire supprimé.');
     }
 }

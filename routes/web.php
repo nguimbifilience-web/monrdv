@@ -47,9 +47,10 @@ require __DIR__.'/auth.php';
 // =========================================================
 Route::middleware(['auth', 'clinic'])->group(function () {
 
-    // 1. API AJAX Partagées
-    Route::prefix('api')->middleware('throttle:api')->name('api.')->group(function () {
+    // 1. AJAX Partagées (pas de préfixe /api/ — bloqué par InfinityFree)
+    Route::prefix('ajax')->middleware('throttle:api')->name('api.')->group(function () {
         Route::get('rendezvous/creneaux', [RendezVousController::class, 'creneauxDisponibles'])->name('rendezvous.creneaux');
+        Route::get('rendezvous/motifs', [RendezVousController::class, 'motifsByMedecin'])->name('rendezvous.motifs');
         Route::get('medecin/{id}/planning', [PatientPortalController::class, 'getDisponibilitesMedecin'])->name('medecin.planning');
     });
 
@@ -79,7 +80,7 @@ Route::middleware(['auth', 'clinic'])->group(function () {
             Route::post('consultations', 'store')->name('consultations.store');
             Route::get('consultations/recettes-mensuelles', 'recettesMensuelles')->name('consultations.recettes-mensuelles');
             Route::get('consultations/{id}/ticket', 'ticket')->name('consultations.ticket');
-            Route::get('api/patients/{id}/info', 'getPatientInfo')->name('api.patient.info');
+            Route::get('ajax/patients/{id}/info', 'getPatientInfo')->name('api.patient.info');
         });
 
         // Exports CSV
@@ -91,9 +92,9 @@ Route::middleware(['auth', 'clinic'])->group(function () {
         });
 
         // API Staff
-        Route::get('api/medecins/search', [MedecinController::class, 'ajaxSearch'])->name('api.medecins.search');
-        Route::get('api/patients/search', [PatientController::class, 'ajaxSearch'])->name('api.patients.search');
-        Route::get('api/patients/check-email', [PatientController::class, 'checkEmail'])->name('api.patients.check-email');
+        Route::get('ajax/medecins/search', [MedecinController::class, 'ajaxSearch'])->name('api.medecins.search');
+        Route::get('ajax/patients/search', [PatientController::class, 'ajaxSearch'])->name('api.patients.search');
+        Route::get('ajax/patients/check-email', [PatientController::class, 'checkEmail'])->name('api.patients.check-email');
     });
 
     // 3. Espace ADMIN Uniquement
@@ -103,6 +104,7 @@ Route::middleware(['auth', 'clinic'])->group(function () {
         
         Route::resource('specialites', SpecialiteController::class)->except(['create', 'show', 'edit']);
         Route::resource('assurances', AssuranceController::class)->except(['create', 'show', 'edit']);
+        Route::delete('assurances/{id}/document', [AssuranceController::class, 'destroyDocument'])->name('assurances.document.destroy');
 
         // Gestion Comptes
         Route::controller(CompteController::class)->group(function () {
@@ -127,7 +129,7 @@ Route::middleware(['auth', 'clinic'])->group(function () {
             Route::get('/mes-documents', 'mesDocuments')->name('documents');
             Route::post('/mes-documents', 'uploadDocument')->name('documents.upload');
             Route::delete('/mes-documents/{id}', 'supprimerDocument')->name('documents.supprimer');
-            Route::get('/api/medecin/{id}/disponibilites', 'getDisponibilitesMedecin')->name('api.medecin.dispos');
+            Route::get('ajax/medecin/{id}/disponibilites', 'getDisponibilitesMedecin')->name('api.medecin.dispos');
         });
     });
 
@@ -137,8 +139,35 @@ Route::middleware(['auth', 'clinic'])->group(function () {
             Route::get('/dashboard', 'dashboard')->name('dashboard');
             Route::get('/planning', 'planning')->name('planning');
             Route::get('/mes-rendezvous', 'mesRendezvous')->name('rendezvous');
+            Route::post('/programmer-prochain-rdv', 'programmerProchainRdv')->name('prochain-rdv');
             Route::get('/mes-patients', 'mesPatients')->name('patients');
+            Route::get('/patient/{id}/dossier', 'dossierPatient')->name('dossier-patient');
+            Route::post('/patient/{id}/notes', 'sauvegarderNotes')->name('sauvegarder-notes');
         });
+
+        Route::controller(\App\Http\Controllers\OrdonnanceController::class)->prefix('ordonnances')->name('ordonnances.')->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::get('/create', 'create')->name('create');
+            Route::post('/', 'store')->name('store');
+            Route::get('/{ordonnance}', 'show')->name('show');
+            Route::get('/{ordonnance}/print', 'print')->name('print');
+        });
+
+        Route::controller(\App\Http\Controllers\FeuilleExamenController::class)->prefix('examens')->name('examens.')->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::get('/create', 'create')->name('create');
+            Route::post('/', 'store')->name('store');
+            Route::get('/{examen}', 'show')->name('show');
+            Route::get('/{examen}/print', 'print')->name('print');
+        });
+    });
+
+    // Acces patient (lecture seule) aux ordonnances et feuilles examen
+    Route::middleware(['role:patient'])->prefix('espace-patient')->name('patient.')->group(function () {
+        Route::get('/ordonnances/{ordonnance}', [\App\Http\Controllers\OrdonnanceController::class, 'show'])->name('ordonnances.show');
+        Route::get('/ordonnances/{ordonnance}/print', [\App\Http\Controllers\OrdonnanceController::class, 'print'])->name('ordonnances.print');
+        Route::get('/examens/{examen}', [\App\Http\Controllers\FeuilleExamenController::class, 'show'])->name('examens.show');
+        Route::get('/examens/{examen}/print', [\App\Http\Controllers\FeuilleExamenController::class, 'print'])->name('examens.print');
     });
 
 });

@@ -66,7 +66,10 @@
                             <!-- Motif -->
                             <div class="col-md-12 mb-4">
                                 <label class="font-weight-bold text-dark">Motif</label>
-                                <textarea name="motif" class="form-control" rows="3">{{ $rendezvous->motif }}</textarea>
+                                <select id="motif_select" onchange="onMotifSelect()" class="form-control mb-2">
+                                    <option value="">— Choisir un motif prédéfini —</option>
+                                </select>
+                                <textarea name="motif" id="motif_text" class="form-control" rows="3">{{ $rendezvous->motif }}</textarea>
                             </div>
                         </div>
 
@@ -81,4 +84,37 @@
         </div>
     </div>
 </div>
+@push('scripts')
+<script>
+function chargerMotifs() {
+    const medecinSelect = document.querySelector('select[name="medecin_id"]');
+    const medecinId = medecinSelect.value;
+    const select = document.getElementById('motif_select');
+    select.innerHTML = '<option value="">— Choisir un motif prédéfini —</option>';
+    if (!medecinId) return;
+
+    fetch(`/ajax/rendezvous/motifs?medecin_id=${medecinId}`, { headers: { 'Accept': 'application/json' } })
+        .then(r => r.json())
+        .then(data => {
+            (data.motifs || []).forEach(m => {
+                const opt = document.createElement('option');
+                opt.value = m;
+                opt.textContent = m;
+                select.appendChild(opt);
+            });
+        });
+}
+
+function onMotifSelect() {
+    const select = document.getElementById('motif_select');
+    const textarea = document.getElementById('motif_text');
+    if (select.value) {
+        textarea.value = select.value;
+    }
+}
+
+document.querySelector('select[name="medecin_id"]').addEventListener('change', chargerMotifs);
+document.addEventListener('DOMContentLoaded', chargerMotifs);
+</script>
+@endpush
 @endsection

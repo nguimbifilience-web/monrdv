@@ -104,14 +104,14 @@ class RendezVousController extends Controller
             return back()->withInput()->with('error', 'Ce médecin ne travaille pas ce jour-là. Vérifiez son planning.');
         }
 
-        // Vérifier la limite de 20 RDV par jour
+        $maxPerDay = config('monrdv.rdv.max_per_day');
         $nbRdvJour = RendezVous::where('medecin_id', $validated['medecin_id'])
             ->whereDate('date_rv', $validated['date_rv'])
             ->where('statut', '!=', 'annule')
             ->count();
 
-        if ($nbRdvJour >= 20) {
-            return back()->withInput()->with('error', 'Ce médecin a atteint la limite de 20 rendez-vous pour cette journée.');
+        if ($nbRdvJour >= $maxPerDay) {
+            return back()->withInput()->with('error', "Ce médecin a atteint la limite de {$maxPerDay} rendez-vous pour cette journée.");
         }
 
         // RDV créé par le staff → statut confirmé directement
@@ -230,10 +230,15 @@ class RendezVousController extends Controller
             'date' => 'required|date',
         ]);
 
+        $workStart = (int) config('monrdv.rdv.work_start');
+        $workEnd = (int) config('monrdv.rdv.work_end');
+        $slotMinutes = (int) config('monrdv.rdv.slot_minutes');
+
         $tousCreneaux = [];
-        for ($h = 8; $h < 18; $h++) {
-            $tousCreneaux[] = sprintf('%02d:00', $h);
-            $tousCreneaux[] = sprintf('%02d:30', $h);
+        for ($h = $workStart; $h < $workEnd; $h++) {
+            for ($m = 0; $m < 60; $m += $slotMinutes) {
+                $tousCreneaux[] = sprintf('%02d:%02d', $h, $m);
+            }
         }
 
         $pris = RendezVous::where('medecin_id', $request->medecin_id)

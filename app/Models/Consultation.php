@@ -4,10 +4,12 @@ namespace App\Models;
 
 use App\Models\Traits\BelongsToClinic;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Consultation extends Model
 {
     use BelongsToClinic;
+    use SoftDeletes;
 
     protected $fillable = [
         'clinic_id', 'patient_id', 'medecin_id', 'rendez_vous_id',

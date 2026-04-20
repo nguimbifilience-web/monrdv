@@ -71,13 +71,21 @@ class DashboardController extends Controller
             ? round((($rdvParStatut['annule'] ?? 0) / $totalRdv30j) * 100, 1)
             : 0;
 
-        // Consultations par jour sur 7 derniers jours
+        // Consultations par jour sur 7 derniers jours (1 query au lieu de 7)
+        $debut7j = Carbon::now()->subDays(6)->startOfDay();
+        $consultationsParJour = Consultation::select(DB::raw('DATE(created_at) as jour'), DB::raw('COUNT(*) as total'))
+            ->where('created_at', '>=', $debut7j)
+            ->groupBy(DB::raw('DATE(created_at)'))
+            ->pluck('total', 'jour')
+            ->toArray();
+
         $consultations7j = [];
         for ($i = 6; $i >= 0; $i--) {
             $jour = Carbon::now()->subDays($i);
+            $cle = $jour->toDateString();
             $consultations7j[] = [
                 'label' => $jour->isoFormat('ddd D'),
-                'total' => Consultation::whereDate('created_at', $jour->toDateString())->count(),
+                'total' => (int) ($consultationsParJour[$cle] ?? 0),
             ];
         }
 

@@ -7,7 +7,7 @@ use App\Models\Clinic;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
+use App\Support\GeneratedPassword;
 
 class UserController extends Controller
 {
@@ -49,7 +49,7 @@ class UserController extends Controller
             'clinic_id' => 'nullable|exists:clinics,id',
         ]);
 
-        $password = Str::password(12);
+        $password = GeneratedPassword::make();
 
         User::withoutGlobalScopes()->create([
             'name' => $request->name,
@@ -89,7 +89,7 @@ class UserController extends Controller
     public function resetPassword(Request $request, $userId)
     {
         $user = User::withoutGlobalScopes()->findOrFail($userId);
-        $password = $request->filled('new_password') ? $request->new_password : Str::password(12);
+        $password = $request->filled('new_password') ? $request->new_password : GeneratedPassword::make();
         $user->update(['password' => Hash::make($password)]);
         return back()->with('reset_password', json_encode([
             'name' => $user->name, 'email' => $user->email, 'password' => $password,

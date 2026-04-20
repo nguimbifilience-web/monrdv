@@ -76,13 +76,15 @@ class ConsultationController extends Controller
     /**
      * Retourne les infos patient + son dernier RDV (médecin, spécialité, tarif) en JSON
      */
-    public function getPatientInfo($id)
+    public function getPatientInfo(Patient $patient)
     {
-        $patient = Patient::with('assurance')->findOrFail($id);
+        $this->authorize('view', $patient);
+
+        $patient->load('assurance');
 
         // Chercher le dernier RDV non annulé du patient
         $dernierRdv = RendezVous::with('medecin.specialite')
-            ->where('patient_id', $id)
+            ->where('patient_id', $patient->id)
             ->where('statut', '!=', 'annule')
             ->orderBy('date_rv', 'desc')
             ->orderBy('heure_rv', 'desc')

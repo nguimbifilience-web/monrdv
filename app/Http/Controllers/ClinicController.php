@@ -13,6 +13,7 @@ use App\Models\User;
 use App\Http\Requests\StoreClinicRequest;
 use App\Http\Requests\UpdateClinicRequest;
 use Illuminate\Http\Request;
+use App\Support\GeneratedPassword;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -116,7 +117,7 @@ class ClinicController extends Controller
             'role' => 'required|in:admin,secretaire',
         ]);
 
-        $password = Str::password(12);
+        $password = GeneratedPassword::make();
 
         $newUser = User::withoutGlobalScopes()->create([
             'name' => $request->name,
@@ -168,7 +169,7 @@ class ClinicController extends Controller
             $request->validate(['new_password' => 'string|min:8']);
             $password = $request->new_password;
         } else {
-            $password = Str::password(12);
+            $password = GeneratedPassword::make();
         }
 
         $user->update([
@@ -229,7 +230,7 @@ class ClinicController extends Controller
 
         // Créer l'admin de la clinique si renseigné
         if ($request->filled('admin_name') && $request->filled('admin_email')) {
-            $password = Str::password(12);
+            $password = GeneratedPassword::make();
             User::withoutGlobalScopes()->create([
                 'name' => $request->admin_name,
                 'email' => $request->admin_email,

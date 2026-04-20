@@ -12,7 +12,7 @@ use App\Http\Requests\StorePatientRequest;
 use App\Http\Requests\UpdatePatientRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
+use App\Support\GeneratedPassword;
 
 class PatientController extends Controller
 {
@@ -54,7 +54,7 @@ class PatientController extends Controller
         // Créer le compte utilisateur si un email est fourni
         $userId = null;
         if ($request->filled('email')) {
-            $password = Str::password(12);
+            $password = GeneratedPassword::make();
             $user = User::create([
                 'name' => $request->prenom . ' ' . $request->nom,
                 'email' => $request->email,

@@ -80,7 +80,7 @@ Route::middleware(['auth', 'clinic'])->group(function () {
             Route::post('consultations', 'store')->name('consultations.store');
             Route::get('consultations/recettes-mensuelles', 'recettesMensuelles')->name('consultations.recettes-mensuelles');
             Route::get('consultations/{id}/ticket', 'ticket')->name('consultations.ticket');
-            Route::get('ajax/patients/{id}/info', 'getPatientInfo')->name('api.patient.info');
+            Route::get('ajax/patients/{patient}/info', 'getPatientInfo')->name('api.patient.info');
         });
 
         // Exports CSV

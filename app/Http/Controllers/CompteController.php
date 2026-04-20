@@ -8,7 +8,7 @@ use App\Models\Patient;
 use App\Models\Medecin;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
+use App\Support\GeneratedPassword;
 
 class CompteController extends Controller
 {
@@ -20,7 +20,7 @@ class CompteController extends Controller
             'role' => 'required|in:admin,secretaire,medecin,patient',
         ]);
 
-        $password = Str::password(12);
+        $password = GeneratedPassword::make();
         $nameParts = explode(' ', $request->name, 2);
         $prenom = $nameParts[0];
         $nom = $nameParts[1] ?? $prenom;
@@ -110,7 +110,7 @@ class CompteController extends Controller
             $request->validate(['new_password' => 'string|min:8']);
             $newPassword = $request->new_password;
         } else {
-            $newPassword = Str::password(12);
+            $newPassword = GeneratedPassword::make();
         }
 
         $user->update([

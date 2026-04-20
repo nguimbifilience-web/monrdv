@@ -16,10 +16,20 @@ use App\Models\Patient;
 use App\Models\RendezVous;
 use App\Models\DocumentPatient;
 use App\Models\Consultation;
+use App\Models\Medecin;
+use App\Models\Assurance;
+use App\Models\Specialite;
+use App\Models\Ordonnance;
+use App\Models\FeuilleExamen;
 use App\Policies\PatientPolicy;
 use App\Policies\RendezVousPolicy;
 use App\Policies\DocumentPatientPolicy;
 use App\Policies\ConsultationPolicy;
+use App\Policies\MedecinPolicy;
+use App\Policies\AssurancePolicy;
+use App\Policies\SpecialitePolicy;
+use App\Policies\OrdonnancePolicy;
+use App\Policies\FeuilleExamenPolicy;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -32,7 +42,19 @@ class AppServiceProvider extends ServiceProvider
     {
         // Rate Limiters
         RateLimiter::for('login', function (Request $request) {
-            return Limit::perMinute(5)->by($request->ip());
+            $email = (string) $request->input('email', '');
+            return [
+                Limit::perMinute(5)->by($request->ip()),
+                Limit::perMinute(5)->by(mb_strtolower($email) . '|' . $request->ip()),
+            ];
+        });
+
+        RateLimiter::for('password-reset', function (Request $request) {
+            $email = (string) $request->input('email', '');
+            return [
+                Limit::perMinute(3)->by($request->ip()),
+                Limit::perMinute(3)->by(mb_strtolower($email)),
+            ];
         });
 
         RateLimiter::for('api', function (Request $request) {
@@ -57,6 +79,11 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(RendezVous::class, RendezVousPolicy::class);
         Gate::policy(DocumentPatient::class, DocumentPatientPolicy::class);
         Gate::policy(Consultation::class, ConsultationPolicy::class);
+        Gate::policy(Medecin::class, MedecinPolicy::class);
+        Gate::policy(Assurance::class, AssurancePolicy::class);
+        Gate::policy(Specialite::class, SpecialitePolicy::class);
+        Gate::policy(Ordonnance::class, OrdonnancePolicy::class);
+        Gate::policy(FeuilleExamen::class, FeuilleExamenPolicy::class);
 
         // Audit des echecs d'authentification (RGPD / securite).
         // ActivityLog::log() court-circuite quand auth()->check() est faux,

@@ -10,7 +10,7 @@ use App\Http\Requests\StoreMedecinRequest;
 use App\Http\Requests\UpdateMedecinRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
+use App\Support\GeneratedPassword;
 
 class MedecinController extends Controller
 {
@@ -48,7 +48,7 @@ class MedecinController extends Controller
         $validated = $request->validated();
 
         // Générer un mot de passe
-        $password = Str::password(12);
+        $password = GeneratedPassword::make();
 
         // Créer le compte utilisateur du médecin
         $user = User::create([

@@ -18,6 +18,8 @@ return Application::configure(basePath: dirname(__DIR__))
             users: '/dashboard'
         );
 
+        $middleware->append(\App\Http\Middleware\SecurityHeaders::class);
+
         $middleware->alias([
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
             'role' => \App\Http\Middleware\RoleMiddleware::class,

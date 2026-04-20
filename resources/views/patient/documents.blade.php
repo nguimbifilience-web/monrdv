@@ -92,11 +92,11 @@
                     </td>
                     <td class="p-5">
                         <div class="flex justify-center gap-2">
-                            <a href="{{ asset('storage/' . $doc->fichier) }}" target="_blank"
+                            <a href="{{ route('patient.documents.voir', $doc->id) }}" target="_blank"
                                 class="w-9 h-9 flex items-center justify-center bg-cyan-50 text-cyan-500 rounded-xl hover:bg-cyan-500 hover:text-white transition-all" title="Voir">
                                 <i class="fas fa-eye"></i>
                             </a>
-                            <a href="{{ asset('storage/' . $doc->fichier) }}" download
+                            <a href="{{ route('patient.documents.telecharger', $doc->id) }}"
                                 class="w-9 h-9 flex items-center justify-center bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-600 hover:text-white transition-all" title="Telecharger">
                                 <i class="fas fa-download"></i>
                             </a>

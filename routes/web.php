@@ -128,6 +128,8 @@ Route::middleware(['auth', 'clinic'])->group(function () {
             Route::patch('/rendezvous/{id}/annuler', 'annulerRendezvous')->name('annuler-rdv');
             Route::get('/mes-documents', 'mesDocuments')->name('documents');
             Route::post('/mes-documents', 'uploadDocument')->name('documents.upload');
+            Route::get('/mes-documents/{id}/voir', 'voirDocument')->name('documents.voir');
+            Route::get('/mes-documents/{id}/telecharger', 'telechargerDocument')->name('documents.telecharger');
             Route::delete('/mes-documents/{id}', 'supprimerDocument')->name('documents.supprimer');
             Route::get('ajax/medecin/{id}/disponibilites', 'getDisponibilitesMedecin')->name('api.medecin.dispos');
         });

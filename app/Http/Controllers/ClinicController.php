@@ -116,7 +116,7 @@ class ClinicController extends Controller
             'role' => 'required|in:admin,secretaire',
         ]);
 
-        $password = Str::random(8);
+        $password = Str::password(12);
 
         $newUser = User::withoutGlobalScopes()->create([
             'name' => $request->name,
@@ -168,7 +168,7 @@ class ClinicController extends Controller
             $request->validate(['new_password' => 'string|min:8']);
             $password = $request->new_password;
         } else {
-            $password = Str::random(8);
+            $password = Str::password(12);
         }
 
         $user->update([
@@ -229,7 +229,7 @@ class ClinicController extends Controller
 
         // Créer l'admin de la clinique si renseigné
         if ($request->filled('admin_name') && $request->filled('admin_email')) {
-            $password = Str::random(8);
+            $password = Str::password(12);
             User::withoutGlobalScopes()->create([
                 'name' => $request->admin_name,
                 'email' => $request->admin_email,

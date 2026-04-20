@@ -20,7 +20,7 @@ class CompteController extends Controller
             'role' => 'required|in:admin,secretaire,medecin,patient',
         ]);
 
-        $password = Str::random(8);
+        $password = Str::password(12);
         $nameParts = explode(' ', $request->name, 2);
         $prenom = $nameParts[0];
         $nom = $nameParts[1] ?? $prenom;
@@ -110,7 +110,7 @@ class CompteController extends Controller
             $request->validate(['new_password' => 'string|min:8']);
             $newPassword = $request->new_password;
         } else {
-            $newPassword = Str::random(8);
+            $newPassword = Str::password(12);
         }
 
         $user->update([

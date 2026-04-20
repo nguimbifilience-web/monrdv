@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\FeuilleExamen;
 use App\Models\Patient;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class FeuilleExamenController extends Controller
 {
@@ -49,10 +50,17 @@ class FeuilleExamenController extends Controller
     public function store(Request $request)
     {
         $medecin = $this->getMedecin();
+        $clinicId = auth()->user()->clinic_id;
 
         $data = $request->validate([
-            'patient_id' => 'required|exists:patients,id',
-            'consultation_id' => 'nullable|exists:consultations,id',
+            'patient_id' => [
+                'required',
+                Rule::exists('patients', 'id')->where('clinic_id', $clinicId),
+            ],
+            'consultation_id' => [
+                'nullable',
+                Rule::exists('consultations', 'id')->where('clinic_id', $clinicId),
+            ],
             'date' => 'required|date',
             'motif_clinique' => 'nullable|string',
             'lignes' => 'required|array|min:1',
@@ -99,6 +107,13 @@ class FeuilleExamenController extends Controller
     private function authorizeView(FeuilleExamen $examen): void
     {
         $user = auth()->user();
+
+        // Defense en profondeur : verif stricte clinic_id
+        // (le ClinicScope filtre deja au route-binding, mais on garde ce check
+        // au cas ou un appel ailleurs utiliserait withoutGlobalScopes)
+        if ($user->clinic_id && $examen->clinic_id !== $user->clinic_id) {
+            abort(403);
+        }
 
         if ($user->isMedecin() && $user->medecin && $examen->medecin_id === $user->medecin->id) {
             return;

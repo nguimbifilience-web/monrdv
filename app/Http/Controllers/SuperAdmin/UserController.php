@@ -49,7 +49,7 @@ class UserController extends Controller
             'clinic_id' => 'nullable|exists:clinics,id',
         ]);
 
-        $password = Str::random(8);
+        $password = Str::password(12);
 
         User::withoutGlobalScopes()->create([
             'name' => $request->name,
@@ -89,7 +89,7 @@ class UserController extends Controller
     public function resetPassword(Request $request, $userId)
     {
         $user = User::withoutGlobalScopes()->findOrFail($userId);
-        $password = $request->filled('new_password') ? $request->new_password : Str::random(8);
+        $password = $request->filled('new_password') ? $request->new_password : Str::password(12);
         $user->update(['password' => Hash::make($password)]);
         return back()->with('reset_password', json_encode([
             'name' => $user->name, 'email' => $user->email, 'password' => $password,

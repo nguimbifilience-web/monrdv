@@ -119,9 +119,7 @@ class RendezVousController extends Controller
 
         $rdv = RendezVous::create($validated);
 
-        $patient = Patient::find($validated['patient_id']);
-        $medecin = Medecin::find($validated['medecin_id']);
-        ActivityLog::log('creation', "RDV créé : {$patient->nom} {$patient->prenom} avec Dr. {$medecin->nom} le {$validated['date_rv']}", $rdv);
+        ActivityLog::log('creation', "RDV #{$rdv->id} cree : patient #{$validated['patient_id']}, medecin #{$validated['medecin_id']}, date {$validated['date_rv']}", $rdv);
 
         return redirect()->route('rendezvous.index')
                          ->with('success', 'Le rendez-vous a été enregistré !');
@@ -181,10 +179,9 @@ class RendezVousController extends Controller
             return back()->withInput()->with('error', 'Ce médecin est déjà occupé à cette date et heure.');
         }
 
-        $oldValues = $rendezvous->toArray();
         $rendezvous->update($validated);
 
-        ActivityLog::log('modification', "RDV #{$id} modifié", $rendezvous, $oldValues, $validated);
+        ActivityLog::log('modification', "RDV #{$id} modifie", $rendezvous);
 
         return redirect()->route('rendezvous.index')
                          ->with('success', 'Rendez-vous mis à jour avec succès !');
@@ -218,7 +215,7 @@ class RendezVousController extends Controller
         $this->authorize('update', $rdv);
         $rdv->update(['statut' => 'confirme']);
 
-        ActivityLog::log('modification', "RDV #{$id} confirmé pour {$rdv->patient->nom} {$rdv->patient->prenom}", $rdv);
+        ActivityLog::log('modification', "RDV #{$id} confirme", $rdv);
 
         return back()->with('success', 'Rendez-vous confirmé !');
     }

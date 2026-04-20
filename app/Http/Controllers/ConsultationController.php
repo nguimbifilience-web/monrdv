@@ -143,7 +143,7 @@ class ConsultationController extends Controller
 
         ActivityLog::log(
             'creation',
-            "Consultation enregistree : {$patient->nom} {$patient->prenom} avec Dr. {$medecin->nom} - {$montantPatient} F",
+            "Consultation #{$consultation->id} creee : patient #{$validated['patient_id']}, medecin #{$validated['medecin_id']}, montant patient {$montantPatient} F",
             $consultation
         );
 

@@ -32,6 +32,9 @@ nul
 /deploy/*.zip
 /deploy/migrate.php
 /deploy/fix-cache.php
+/deploy/reset-password.php
+/deploy/debug-error.php
+/deploy/.deploy-token
 
 # Env backups
 .env.*

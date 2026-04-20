@@ -48,7 +48,7 @@ class MedecinController extends Controller
         $validated = $request->validated();
 
         // Générer un mot de passe
-        $password = Str::random(8);
+        $password = Str::password(12);
 
         // Créer le compte utilisateur du médecin
         $user = User::create([
@@ -65,7 +65,7 @@ class MedecinController extends Controller
         $medecinData['user_id'] = $user->id;
         $medecin = Medecin::create($medecinData);
 
-        ActivityLog::log('creation', "Médecin créé : Dr. {$medecin->nom} {$medecin->prenom}", $medecin);
+        ActivityLog::log('creation', "Medecin #{$medecin->id} cree", $medecin);
 
         return redirect()->route('medecins.index')
             ->with('success', "Médecin ajouté ! Identifiants : {$validated['email']} / {$password}");
@@ -99,9 +99,8 @@ class MedecinController extends Controller
 
         $validated = $request->validated();
 
-        $oldValues = $medecin->toArray();
         $medecin->update($validated);
-        ActivityLog::log('modification', "Médecin modifié : Dr. {$medecin->nom}", $medecin, $oldValues, $validated);
+        ActivityLog::log('modification', "Medecin #{$medecin->id} modifie", $medecin);
 
         return redirect()->route('medecins.index')->with('success', 'Médecin mis à jour avec succès !');
     }
@@ -110,7 +109,7 @@ class MedecinController extends Controller
     public function destroy($id)
     {
         $medecin = Medecin::findOrFail($id);
-        ActivityLog::log('suppression', "Médecin supprimé : Dr. {$medecin->nom} {$medecin->prenom}", $medecin);
+        ActivityLog::log('suppression', "Medecin #{$medecin->id} supprime", $medecin);
         $medecin->delete();
 
         return redirect()->route('medecins.index')->with('success', 'Le praticien a été retiré de la liste.');

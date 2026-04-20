@@ -8,6 +8,7 @@ use App\Models\DocumentPatient;
 use App\Models\Ordonnance;
 use App\Models\FeuilleExamen;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class PatientPortalController extends Controller
 {
@@ -176,7 +177,7 @@ class PatientPortalController extends Controller
             'fichier' => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120',
         ]);
 
-        $path = $request->file('fichier')->store('documents/patients/' . $patient->id, 'public');
+        $path = $request->file('fichier')->store('documents/patients/' . $patient->id, 'local');
 
         DocumentPatient::create([
             'patient_id' => $patient->id,
@@ -196,11 +197,40 @@ class PatientPortalController extends Controller
             ->where('patient_id', $patient->id)
             ->firstOrFail();
 
-        // Supprimer le fichier
-        \Illuminate\Support\Facades\Storage::disk('public')->delete($doc->fichier);
+        Storage::disk('local')->delete($doc->fichier);
 
         $doc->delete();
 
         return back()->with('success', 'Document supprimé.');
+    }
+
+    public function voirDocument($id)
+    {
+        $patient = $this->getPatient();
+
+        $doc = DocumentPatient::where('id', $id)
+            ->where('patient_id', $patient->id)
+            ->firstOrFail();
+
+        if (!Storage::disk('local')->exists($doc->fichier)) {
+            abort(404);
+        }
+
+        return Storage::disk('local')->response($doc->fichier, $doc->nom);
+    }
+
+    public function telechargerDocument($id)
+    {
+        $patient = $this->getPatient();
+
+        $doc = DocumentPatient::where('id', $id)
+            ->where('patient_id', $patient->id)
+            ->firstOrFail();
+
+        if (!Storage::disk('local')->exists($doc->fichier)) {
+            abort(404);
+        }
+
+        return Storage::disk('local')->download($doc->fichier, $doc->nom);
     }
 }

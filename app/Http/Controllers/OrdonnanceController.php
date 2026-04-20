@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Ordonnance;
 use App\Models\Patient;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class OrdonnanceController extends Controller
 {
@@ -49,10 +50,17 @@ class OrdonnanceController extends Controller
     public function store(Request $request)
     {
         $medecin = $this->getMedecin();
+        $clinicId = auth()->user()->clinic_id;
 
         $data = $request->validate([
-            'patient_id' => 'required|exists:patients,id',
-            'consultation_id' => 'nullable|exists:consultations,id',
+            'patient_id' => [
+                'required',
+                Rule::exists('patients', 'id')->where('clinic_id', $clinicId),
+            ],
+            'consultation_id' => [
+                'nullable',
+                Rule::exists('consultations', 'id')->where('clinic_id', $clinicId),
+            ],
             'date' => 'required|date',
             'notes_generales' => 'nullable|string',
             'lignes' => 'required|array|min:1',
@@ -96,6 +104,13 @@ class OrdonnanceController extends Controller
     private function authorizeView(Ordonnance $ordonnance): void
     {
         $user = auth()->user();
+
+        // Defense en profondeur : verif stricte clinic_id
+        // (le ClinicScope filtre deja au route-binding, mais on garde ce check
+        // au cas ou un appel ailleurs utiliserait withoutGlobalScopes)
+        if ($user->clinic_id && $ordonnance->clinic_id !== $user->clinic_id) {
+            abort(403);
+        }
 
         if ($user->isMedecin() && $user->medecin && $ordonnance->medecin_id === $user->medecin->id) {
             return;

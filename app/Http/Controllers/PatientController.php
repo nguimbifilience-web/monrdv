@@ -12,6 +12,7 @@ use App\Http\Requests\StorePatientRequest;
 use App\Http\Requests\UpdatePatientRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class PatientController extends Controller
 {
@@ -53,7 +54,7 @@ class PatientController extends Controller
         // Créer le compte utilisateur si un email est fourni
         $userId = null;
         if ($request->filled('email')) {
-            $password = strtolower(substr($request->nom, 0, 3)) . rand(1000, 9999);
+            $password = Str::password(12);
             $user = User::create([
                 'name' => $request->prenom . ' ' . $request->nom,
                 'email' => $request->email,
@@ -70,7 +71,7 @@ class PatientController extends Controller
             ['user_id' => $userId, 'clinic_id' => auth()->user()->clinic_id]
         ));
 
-        ActivityLog::log('creation', "Patient créé : {$patient->nom} {$patient->prenom}", $patient);
+        ActivityLog::log('creation', "Patient #{$patient->id} cree", $patient);
 
         $message = 'Le patient a été enregistré avec succès.';
         if (isset($password)) {
@@ -113,9 +114,8 @@ class PatientController extends Controller
     {
         $this->authorize('update', $patient);
 
-        $oldValues = $patient->toArray();
         $patient->update($request->all());
-        ActivityLog::log('modification', "Patient modifié : {$patient->nom} {$patient->prenom}", $patient, $oldValues, $request->all());
+        ActivityLog::log('modification', "Patient #{$patient->id} modifie", $patient);
 
         return redirect()->route('patients.index')
                          ->with('success', 'Dossier patient mis à jour.');
@@ -125,7 +125,7 @@ class PatientController extends Controller
     {
         $this->authorize('delete', $patient);
 
-        ActivityLog::log('suppression', "Patient supprimé : {$patient->nom} {$patient->prenom}", $patient);
+        ActivityLog::log('suppression', "Patient #{$patient->id} supprime", $patient);
         $patient->delete();
         return redirect()->route('patients.index')
                          ->with('success', 'Patient supprimé.');
@@ -141,7 +141,7 @@ class PatientController extends Controller
         ]);
 
         $patient->update($data);
-        ActivityLog::log('modification', "Notes médicales mises à jour pour {$patient->nom} {$patient->prenom}", $patient);
+        ActivityLog::log('modification', "Notes medicales mises a jour pour patient #{$patient->id}", $patient);
 
         return back()->with('success', 'Dossier médical mis à jour.');
     }

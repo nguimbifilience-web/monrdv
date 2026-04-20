@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Storage;
 class AssuranceController extends Controller
 {
     public function index(Request $request) {
+        $this->authorize('viewAny', Assurance::class);
         $search = $request->get('search');
         $query = Assurance::withCount('patients');
 
@@ -70,6 +71,7 @@ class AssuranceController extends Controller
     }
 
     public function store(StoreAssuranceRequest $request) {
+        $this->authorize('create', Assurance::class);
         $data = $request->validated();
 
         if ($request->hasFile('document_modele')) {
@@ -82,6 +84,7 @@ class AssuranceController extends Controller
 
     public function update(StoreAssuranceRequest $request, $id) {
         $assurance = Assurance::findOrFail($id);
+        $this->authorize('update', $assurance);
         $data = $request->validated();
 
         if ($request->hasFile('document_modele')) {
@@ -97,6 +100,7 @@ class AssuranceController extends Controller
 
     public function destroyDocument($id) {
         $assurance = Assurance::findOrFail($id);
+        $this->authorize('update', $assurance);
         if ($assurance->document_modele_path) {
             Storage::disk('public')->delete($assurance->document_modele_path);
             $assurance->update(['document_modele_path' => null]);
@@ -106,6 +110,7 @@ class AssuranceController extends Controller
 
     public function destroy($id) {
         $assurance = Assurance::findOrFail($id);
+        $this->authorize('delete', $assurance);
         if ($assurance->document_modele_path) {
             Storage::disk('public')->delete($assurance->document_modele_path);
         }

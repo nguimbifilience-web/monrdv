@@ -16,6 +16,7 @@ class MedecinController extends Controller
 {
     public function index(Request $request)
     {
+        $this->authorize('viewAny', Medecin::class);
         $query = Medecin::with(['specialite', 'user']);
 
         if ($request->filled('search')) {
@@ -37,14 +38,16 @@ class MedecinController extends Controller
         return view('medecins.index', compact('medecins', 'specialites'));
     }
 
-    public function create() 
+    public function create()
     {
+        $this->authorize('create', Medecin::class);
         $specialites = Specialite::all();
         return view('medecins.create', compact('specialites'));
     }
 
     public function store(StoreMedecinRequest $request)
     {
+        $this->authorize('create', Medecin::class);
         $validated = $request->validated();
 
         // Générer un mot de passe
@@ -88,6 +91,7 @@ class MedecinController extends Controller
     public function edit($id)
     {
         $medecin = Medecin::findOrFail($id);
+        $this->authorize('update', $medecin);
         $specialites = Specialite::all(); // Nécessaire pour le menu déroulant des spécialités
         return view('medecins.edit', compact('medecin', 'specialites'));
     }
@@ -96,6 +100,7 @@ class MedecinController extends Controller
     public function update(UpdateMedecinRequest $request, $id)
     {
         $medecin = Medecin::findOrFail($id);
+        $this->authorize('update', $medecin);
 
         $validated = $request->validated();
 
@@ -109,6 +114,7 @@ class MedecinController extends Controller
     public function destroy($id)
     {
         $medecin = Medecin::findOrFail($id);
+        $this->authorize('delete', $medecin);
         ActivityLog::log('suppression', "Medecin #{$medecin->id} supprime", $medecin);
         $medecin->delete();
 

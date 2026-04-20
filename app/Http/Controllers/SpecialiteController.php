@@ -11,6 +11,7 @@ use Carbon\Carbon;
 class SpecialiteController extends Controller
 {
     public function index(Request $request) {
+        $this->authorize('viewAny', Specialite::class);
         $search = $request->get('search');
         $query = Specialite::withCount(['medecins', 'rendezvous as rdv_mois_count' => function ($q) {
             $q->whereMonth('date_rv', Carbon::now()->month)
@@ -27,6 +28,7 @@ class SpecialiteController extends Controller
     }
 
     public function store(StoreSpecialiteRequest $request) {
+        $this->authorize('create', Specialite::class);
         $data = $request->validated();
         Specialite::create($data);
         return back()->with('success', 'Créé.');
@@ -34,6 +36,7 @@ class SpecialiteController extends Controller
 
     public function update(Request $request, $id) {
         $spec = Specialite::findOrFail($id);
+        $this->authorize('update', $spec);
         $data = $request->validate([
             'nom' => 'required|unique:specialites,nom,'.$id,
             'icone' => 'nullable|string|max:50',
@@ -44,7 +47,9 @@ class SpecialiteController extends Controller
     }
 
     public function destroy($id) {
-        Specialite::destroy($id);
+        $spec = Specialite::findOrFail($id);
+        $this->authorize('delete', $spec);
+        $spec->delete();
         return back()->with('error', 'Supprimé.');
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ActivityLog;
 use App\Models\FeuilleExamen;
 use App\Models\Patient;
 use Illuminate\Http\Request;
@@ -93,6 +94,7 @@ class FeuilleExamenController extends Controller
     {
         $this->authorizeView($examen);
         $examen->load(['patient', 'medecin.specialite', 'lignes', 'clinic']);
+        ActivityLog::log('consultation', "Feuille examen #{$examen->id} consultee (" . auth()->user()->role . ")", $examen);
         $view = auth()->user()->isPatient() ? 'patient.examens.show' : 'medecin.examens.show';
         return view($view, ['feuille' => $examen]);
     }
@@ -101,6 +103,7 @@ class FeuilleExamenController extends Controller
     {
         $this->authorizeView($examen);
         $examen->load(['patient', 'medecin.specialite', 'lignes', 'clinic']);
+        ActivityLog::log('impression', "Feuille examen #{$examen->id} imprimee (" . auth()->user()->role . ")", $examen);
         return view('medecin.examens.print', ['feuille' => $examen]);
     }
 

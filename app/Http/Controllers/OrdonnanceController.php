@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ActivityLog;
 use App\Models\Ordonnance;
 use App\Models\Patient;
 use Illuminate\Http\Request;
@@ -90,6 +91,7 @@ class OrdonnanceController extends Controller
     {
         $this->authorizeView($ordonnance);
         $ordonnance->load(['patient', 'medecin.specialite', 'lignes', 'clinic']);
+        ActivityLog::log('consultation', "Ordonnance #{$ordonnance->id} consultee (" . auth()->user()->role . ")", $ordonnance);
         $view = auth()->user()->isPatient() ? 'patient.ordonnances.show' : 'medecin.ordonnances.show';
         return view($view, compact('ordonnance'));
     }
@@ -98,6 +100,7 @@ class OrdonnanceController extends Controller
     {
         $this->authorizeView($ordonnance);
         $ordonnance->load(['patient', 'medecin.specialite', 'lignes', 'clinic']);
+        ActivityLog::log('impression', "Ordonnance #{$ordonnance->id} imprimee (" . auth()->user()->role . ")", $ordonnance);
         return view('medecin.ordonnances.print', compact('ordonnance'));
     }
 

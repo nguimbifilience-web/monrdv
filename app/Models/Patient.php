@@ -5,10 +5,12 @@ namespace App\Models;
 use App\Models\Traits\BelongsToClinic;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Patient extends Model
 {
     use BelongsToClinic;
+    use SoftDeletes;
 
     protected $fillable = [
         'nom', 'prenom', 'telephone', 'email', 'quartier',

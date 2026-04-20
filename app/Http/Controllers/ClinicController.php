@@ -123,6 +123,7 @@ class ClinicController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($password),
+            'must_change_password' => true,
             'role' => $request->role,
             'clinic_id' => $clinic->id,
             'email_verified_at' => now(),
@@ -174,6 +175,7 @@ class ClinicController extends Controller
 
         $user->update([
             'password' => Hash::make($password),
+            'must_change_password' => true,
         ]);
 
         ActivityLog::log(
@@ -235,6 +237,7 @@ class ClinicController extends Controller
                 'name' => $request->admin_name,
                 'email' => $request->admin_email,
                 'password' => Hash::make($password),
+                'must_change_password' => true,
                 'role' => 'admin',
                 'clinic_id' => $clinic->id,
                 'email_verified_at' => now(),

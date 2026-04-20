@@ -55,6 +55,7 @@ class UserController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($password),
+            'must_change_password' => true,
             'role' => $request->role,
             'clinic_id' => $request->clinic_id,
             'email_verified_at' => now(),
@@ -90,7 +91,7 @@ class UserController extends Controller
     {
         $user = User::withoutGlobalScopes()->findOrFail($userId);
         $password = $request->filled('new_password') ? $request->new_password : GeneratedPassword::make();
-        $user->update(['password' => Hash::make($password)]);
+        $user->update(['password' => Hash::make($password), 'must_change_password' => true]);
         return back()->with('reset_password', json_encode([
             'name' => $user->name, 'email' => $user->email, 'password' => $password,
         ]));

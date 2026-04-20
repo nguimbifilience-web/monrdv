@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ActivityLog;
 use App\Models\Patient;
 use App\Models\RendezVous;
 use App\Models\Consultation;
@@ -15,6 +16,8 @@ class ExportController extends Controller
         $this->authorize('viewAny', Patient::class);
 
         $patients = Patient::with(['medecin', 'assurance'])->get();
+
+        ActivityLog::log('export', "Export CSV patients ({$patients->count()} lignes)");
 
         return $this->streamCsv('patients.csv',
             ['Nom', 'Prénom', 'Téléphone', 'Email', 'Quartier', 'Assuré', 'Assurance', 'Médecin traitant', 'Date inscription'],
@@ -47,6 +50,8 @@ class ExportController extends Controller
 
         $rdvs = $query->orderBy('date_rv', 'desc')->get();
 
+        ActivityLog::log('export', "Export CSV rendez-vous ({$rdvs->count()} lignes)");
+
         return $this->streamCsv('rendezvous.csv',
             ['Date', 'Heure', 'Patient', 'Médecin', 'Spécialité', 'Motif', 'Statut', 'Source'],
             $rdvs->map(fn($r) => [
@@ -74,6 +79,8 @@ class ExportController extends Controller
         }
 
         $consultations = $query->orderBy('created_at', 'desc')->get();
+
+        ActivityLog::log('export', "Export CSV consultations ({$consultations->count()} lignes)");
 
         return $this->streamCsv('consultations.csv',
             ['Date', 'Patient', 'Médecin', 'Spécialité', 'Montant total', 'Taux couverture', 'Part assurance', 'Part patient', 'Montant donné', 'Montant rendu'],
@@ -105,6 +112,8 @@ class ExportController extends Controller
             ->groupByRaw('DATE(created_at)')
             ->orderBy('jour')
             ->get();
+
+        ActivityLog::log('export', "Export CSV recettes {$mois}/{$annee} ({$recettes->count()} jours)");
 
         return $this->streamCsv("recettes_{$mois}_{$annee}.csv",
             ['Jour', 'Nb consultations', 'Recettes patients', 'Part assurance', 'Total tarifs'],

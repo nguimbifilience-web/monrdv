@@ -12,7 +12,7 @@ class User extends Authenticatable
 {
     use HasFactory, Notifiable;
 
-    protected $fillable = ['name', 'email', 'password', 'role', 'clinic_id'];
+    protected $fillable = ['name', 'email', 'password', 'role', 'clinic_id', 'must_change_password'];
 
     protected static function booted(): void
     {
@@ -26,6 +26,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'must_change_password' => 'boolean',
         ];
     }
 

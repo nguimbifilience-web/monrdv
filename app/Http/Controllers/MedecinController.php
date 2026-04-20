@@ -58,6 +58,7 @@ class MedecinController extends Controller
             'name' => 'Dr. ' . $validated['nom'] . ' ' . $validated['prenom'],
             'email' => $validated['email'],
             'password' => Hash::make($password),
+            'must_change_password' => true,
             'role' => 'medecin',
             'clinic_id' => auth()->user()->clinic_id,
             'email_verified_at' => now(),

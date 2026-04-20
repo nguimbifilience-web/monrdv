@@ -7,7 +7,6 @@ use App\Models\User;
 use App\Models\Medecin;
 use App\Models\Assurance;
 use App\Models\ActivityLog;
-use App\Models\PatientValidationCode;
 use App\Http\Requests\StorePatientRequest;
 use App\Http\Requests\UpdatePatientRequest;
 use Illuminate\Http\Request;
@@ -59,6 +58,7 @@ class PatientController extends Controller
                 'name' => $request->prenom . ' ' . $request->nom,
                 'email' => $request->email,
                 'password' => Hash::make($password),
+                'must_change_password' => true,
                 'role' => 'patient',
                 'clinic_id' => auth()->user()->clinic_id,
                 'email_verified_at' => now(),

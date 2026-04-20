@@ -29,6 +29,7 @@ class CompteController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($password),
+            'must_change_password' => true,
             'role' => $request->role,
             'clinic_id' => auth()->user()->clinic_id,
             'email_verified_at' => now(),
@@ -115,6 +116,7 @@ class CompteController extends Controller
 
         $user->update([
             'password' => Hash::make($newPassword),
+            'must_change_password' => true,
         ]);
 
         ActivityLog::log('modification', "Mot de passe reinitialise pour {$user->email}", $user);

@@ -25,6 +25,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'role' => \App\Http\Middleware\RoleMiddleware::class,
             'clinic' => \App\Http\Middleware\EnsureUserBelongsToClinic::class,
             'super_admin' => \App\Http\Middleware\SuperAdminMiddleware::class,
+            'force.password.change' => \App\Http\Middleware\ForcePasswordChange::class,
         ]);
 
         // Appliquer le middleware clinic à toutes les routes web authentifiées

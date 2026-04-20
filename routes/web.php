@@ -45,7 +45,7 @@ require __DIR__.'/auth.php';
 // =========================================================
 // TOUTES LES ROUTES NÉCESSITANT AUTHENTIFICATION + CLINIQUE
 // =========================================================
-Route::middleware(['auth', 'clinic'])->group(function () {
+Route::middleware(['auth', 'clinic', 'force.password.change'])->group(function () {
 
     // 1. AJAX Partagées (pas de préfixe /api/ — bloqué par InfinityFree)
     Route::prefix('ajax')->middleware('throttle:api')->name('api.')->group(function () {

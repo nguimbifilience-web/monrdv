@@ -1,0 +1,27 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+
+parameters:
+    paths:
+        - app/
+        - config/
+        - database/
+        - routes/
+
+    level: 5
+
+    tmpDir: storage/phpstan
+
+    excludePaths:
+        - vendor/
+        - storage/
+        - bootstrap/cache/
+
+    checkMissingIterableValueType: false
+    checkGenericClassInNonGenericObjectType: false
+
+    ignoreErrors:
+        # Eloquent dynamic attributes : trop de faux positifs sur $model->field
+        - '#Access to an undefined property#'
+        # Relations dynamiques magic methods
+        - '#Call to an undefined method .*::(belongsTo|hasMany|hasOne|belongsToMany)#'

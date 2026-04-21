@@ -131,22 +131,71 @@ class PolicyTest extends TestCase
         $this->assertFalse($this->patientUserA->can('view', $consultation));
     }
 
-    public function test_document_patient_policy(): void
+    public function test_document_patient_policy_categorie_informations(): void
     {
         $doc = DocumentPatient::create([
             'patient_id' => $this->patientA->id,
             'clinic_id' => $this->clinicA->id,
-            'nom' => 'test.pdf',
-            'type' => 'ordonnance',
-            'fichier' => 'documents/test.pdf',
+            'nom' => 'carte-id.pdf',
+            'type' => 'autre',
+            'categorie' => DocumentPatient::CATEGORIE_INFO,
+            'fichier' => 'documents/test-info.pdf',
         ]);
 
+        // Lecture : tous les staff de la clinique + patient owner
         $this->assertTrue($this->adminA->can('view', $doc));
+        $this->assertTrue($this->secretaireA->can('view', $doc));
+        $this->assertTrue($this->medecinUserA->can('view', $doc));
         $this->assertTrue($this->patientUserA->can('view', $doc));
         $this->assertFalse($this->adminB->can('view', $doc));
 
+        // Suppression : admin + secretaire + medecin + patient owner
         $this->assertTrue($this->adminA->can('delete', $doc));
-        $this->assertFalse($this->secretaireA->can('delete', $doc));
+        $this->assertTrue($this->secretaireA->can('delete', $doc));
+        $this->assertTrue($this->medecinUserA->can('delete', $doc));
         $this->assertTrue($this->patientUserA->can('delete', $doc));
+    }
+
+    public function test_document_patient_policy_categorie_medical(): void
+    {
+        $doc = DocumentPatient::create([
+            'patient_id' => $this->patientA->id,
+            'clinic_id' => $this->clinicA->id,
+            'nom' => 'bilan.pdf',
+            'type' => 'autre',
+            'categorie' => DocumentPatient::CATEGORIE_MEDICAL,
+            'fichier' => 'documents/test-med.pdf',
+        ]);
+
+        // Lecture : medecin + secretaire + patient owner (admin clinique exclu)
+        $this->assertTrue($this->medecinUserA->can('view', $doc));
+        $this->assertTrue($this->secretaireA->can('view', $doc));
+        $this->assertTrue($this->patientUserA->can('view', $doc));
+        $this->assertFalse($this->adminA->can('view', $doc));
+        $this->assertFalse($this->adminB->can('view', $doc));
+
+        // Suppression : medecin seulement cote staff + patient owner
+        $this->assertTrue($this->medecinUserA->can('delete', $doc));
+        $this->assertFalse($this->secretaireA->can('delete', $doc));
+        $this->assertFalse($this->adminA->can('delete', $doc));
+        $this->assertTrue($this->patientUserA->can('delete', $doc));
+    }
+
+    public function test_document_patient_upload_par_categorie(): void
+    {
+        // Upload informations : tous staff + patient
+        $this->assertTrue($this->adminA->can('uploadCategorie', [DocumentPatient::class, $this->patientA, DocumentPatient::CATEGORIE_INFO]));
+        $this->assertTrue($this->secretaireA->can('uploadCategorie', [DocumentPatient::class, $this->patientA, DocumentPatient::CATEGORIE_INFO]));
+        $this->assertTrue($this->medecinUserA->can('uploadCategorie', [DocumentPatient::class, $this->patientA, DocumentPatient::CATEGORIE_INFO]));
+        $this->assertTrue($this->patientUserA->can('uploadCategorie', [DocumentPatient::class, $this->patientA, DocumentPatient::CATEGORIE_INFO]));
+
+        // Upload medical : medecin + patient owner (pas admin, pas secretaire)
+        $this->assertTrue($this->medecinUserA->can('uploadCategorie', [DocumentPatient::class, $this->patientA, DocumentPatient::CATEGORIE_MEDICAL]));
+        $this->assertTrue($this->patientUserA->can('uploadCategorie', [DocumentPatient::class, $this->patientA, DocumentPatient::CATEGORIE_MEDICAL]));
+        $this->assertFalse($this->adminA->can('uploadCategorie', [DocumentPatient::class, $this->patientA, DocumentPatient::CATEGORIE_MEDICAL]));
+        $this->assertFalse($this->secretaireA->can('uploadCategorie', [DocumentPatient::class, $this->patientA, DocumentPatient::CATEGORIE_MEDICAL]));
+
+        // Cross-clinic : toujours refuse
+        $this->assertFalse($this->adminB->can('uploadCategorie', [DocumentPatient::class, $this->patientA, DocumentPatient::CATEGORIE_INFO]));
     }
 }

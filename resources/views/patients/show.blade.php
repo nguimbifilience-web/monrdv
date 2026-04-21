@@ -8,6 +8,9 @@
             <i class="fas fa-arrow-left"></i> Retour à la liste
         </a>
         <div class="flex gap-3">
+            <a href="{{ route('patients.documents.index', $patient) }}" class="bg-cyan-500 text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase hover:bg-cyan-600 transition-all">
+                <i class="fas fa-folder-open mr-1"></i> Documents
+            </a>
             <a href="{{ route('patients.edit', $patient) }}" class="bg-blue-600 text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase hover:bg-blue-700 transition-all">
                 <i class="fas fa-edit mr-1"></i> Modifier
             </a>

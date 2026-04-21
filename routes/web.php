@@ -5,7 +5,7 @@ use App\Http\Controllers\{
     PatientController, RendezVousController, SpecialiteController,
     AssuranceController, ConsultationController, PatientPortalController,
     MedecinPortalController, ClinicController, CompteController,
-    ExportController
+    ExportController, DocumentPatientController
 };
 use App\Http\Controllers\SuperAdmin\{
     DashboardController as SuperAdminDashboardController,
@@ -95,6 +95,17 @@ Route::middleware(['auth', 'clinic', 'force.password.change'])->group(function (
         Route::get('ajax/medecins/search', [MedecinController::class, 'ajaxSearch'])->name('api.medecins.search');
         Route::get('ajax/patients/search', [PatientController::class, 'ajaxSearch'])->name('api.patients.search');
         Route::get('ajax/patients/check-email', [PatientController::class, 'checkEmail'])->name('api.patients.check-email');
+    });
+
+    // 2b. Documents patients (accessibles staff + médecin)
+    Route::middleware(['role:admin,secretaire,medecin'])->group(function () {
+        Route::controller(DocumentPatientController::class)->group(function () {
+            Route::get('patients/{patient}/documents', 'index')->name('patients.documents.index');
+            Route::post('patients/{patient}/documents', 'store')->name('patients.documents.store');
+            Route::get('patients/{patient}/documents/{document}/voir', 'view')->name('patients.documents.view');
+            Route::get('patients/{patient}/documents/{document}/telecharger', 'download')->name('patients.documents.download');
+            Route::delete('patients/{patient}/documents/{document}', 'destroy')->name('patients.documents.destroy');
+        });
     });
 
     // 3. Espace ADMIN Uniquement

@@ -152,7 +152,12 @@ class PatientPortalController extends Controller
     public function mesDocuments()
     {
         $patient = $this->getPatient();
-        $documents = DocumentPatient::where('patient_id', $patient->id)->latest()->get();
+
+        $documentsInfo = DocumentPatient::where('patient_id', $patient->id)
+            ->informations()->latest()->get();
+
+        $documentsMedical = DocumentPatient::where('patient_id', $patient->id)
+            ->medical()->latest()->get();
 
         $ordonnances = Ordonnance::with(['medecin.specialite', 'lignes'])
             ->where('patient_id', $patient->id)
@@ -164,7 +169,7 @@ class PatientPortalController extends Controller
             ->orderByDesc('date')
             ->get();
 
-        return view('patient.documents', compact('documents', 'ordonnances', 'feuilles'));
+        return view('patient.documents', compact('documentsInfo', 'documentsMedical', 'ordonnances', 'feuilles'));
     }
 
     public function uploadDocument(Request $request)
@@ -174,19 +179,24 @@ class PatientPortalController extends Controller
         $request->validate([
             'nom' => 'required|string|max:255',
             'type' => 'required|in:assurance,ordonnance,autre',
+            'categorie' => 'required|in:informations,medical',
             'fichier' => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120',
         ]);
 
-        $path = $request->file('fichier')->store('documents/patients/' . $patient->id, 'local');
+        $path = $request->file('fichier')->store(
+            "documents/patients/{$patient->id}/{$request->categorie}",
+            'local'
+        );
 
         DocumentPatient::create([
             'patient_id' => $patient->id,
             'nom' => $request->nom,
             'type' => $request->type,
+            'categorie' => $request->categorie,
             'fichier' => $path,
         ]);
 
-        return back()->with('success', 'Document téléchargé avec succès.');
+        return back()->with('success', 'Document televerse avec succes.');
     }
 
     public function supprimerDocument($id)

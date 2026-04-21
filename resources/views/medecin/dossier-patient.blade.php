@@ -26,11 +26,17 @@
                     <p class="text-blue-300 text-xs font-bold">{{ $patient->telephone }} &bull; {{ $patient->email ?? 'Pas d\'email' }}</p>
                 </div>
             </div>
-            <button type="button"
-                onclick="ouvrirModalProchainRdv({{ $patient->id }}, '{{ addslashes($patient->nom . ' ' . $patient->prenom) }}')"
-                class="bg-cyan-400 text-white hover:bg-cyan-500 px-5 py-3 rounded-xl font-black uppercase text-xs transition-colors">
-                <i class="fas fa-calendar-plus mr-2"></i> Programmer prochain RDV
-            </button>
+            <div class="flex gap-3">
+                <a href="{{ route('patients.documents.index', $patient->id) }}"
+                    class="bg-white/20 text-white hover:bg-white/30 px-5 py-3 rounded-xl font-black uppercase text-xs transition-colors">
+                    <i class="fas fa-folder-open mr-2"></i> Documents
+                </a>
+                <button type="button"
+                    onclick="ouvrirModalProchainRdv({{ $patient->id }}, '{{ addslashes($patient->nom . ' ' . $patient->prenom) }}')"
+                    class="bg-cyan-400 text-white hover:bg-cyan-500 px-5 py-3 rounded-xl font-black uppercase text-xs transition-colors">
+                    <i class="fas fa-calendar-plus mr-2"></i> Programmer prochain RDV
+                </button>
+            </div>
         </div>
         <div class="p-6 grid grid-cols-4 gap-4">
             <div>
